@@ -1,0 +1,7 @@
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm run start"
+
+# Railway will automatically set PORT. This project binds to it via the start script.
