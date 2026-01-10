@@ -33,55 +33,66 @@ router.get('/cards', async (req: Request, res: Response) => {
       return res.json(cached.data);
     }
 
-    // Calculate time window
-    const hours = timeframe === '6h' ? 6 : timeframe === '12h' ? 12 : 24;
-    const cutoffDate = new Date(Date.now() - hours * 60 * 60 * 1000);
+    // Build WHERE clause based on direction
+    let directionFilter = '';
+    if (direction === 'rising') {
+      directionFilter = 'AND c.current_price > c.price_24h_ago';
+    } else if (direction === 'falling') {
+      directionFilter = 'AND c.current_price < c.price_24h_ago';
+    }
 
-    // Get cards with recent price changes
-    const cards = await prisma.$queryRaw`
-      SELECT
-        c.id,
-        c.card_id as "cardId",
-        c.name,
-        c.rating,
-        c.position,
-        c.club,
-        c.league,
-        c.nation,
-        c.card_type as "cardType",
-        c.current_price as "currentPrice",
-        c.price_24h_ago as "price24hAgo",
-        c.price_7d_ago as "price7dAgo",
-        c.platform,
-        CASE
-          WHEN c.price_24h_ago IS NOT NULL AND c.price_24h_ago > 0
-          THEN ROUND(((c.current_price::numeric - c.price_24h_ago::numeric) / c.price_24h_ago::numeric * 100)::numeric, 2)
-          ELSE 0
-        END as "priceChangePercent",
-        CASE
-          WHEN c.current_price > c.price_24h_ago THEN c.current_price - c.price_24h_ago
-          ELSE c.price_24h_ago - c.current_price
-        END as "priceChangeAmount"
-      FROM "Card" c
-      WHERE c.current_price IS NOT NULL
-        AND c.price_24h_ago IS NOT NULL
-        AND c.price_24h_ago > 0
-        ${direction === 'rising' ? 'AND c.current_price > c.price_24h_ago' : ''}
-        ${direction === 'falling' ? 'AND c.current_price < c.price_24h_ago' : ''}
-      ORDER BY ABS(
-        CASE
-          WHEN c.price_24h_ago > 0
-          THEN ((c.current_price::numeric - c.price_24h_ago::numeric) / c.price_24h_ago::numeric * 100)
-          ELSE 0
-        END
-      ) DESC
-      LIMIT ${Number(limit)}
-    `;
+    // Get all cards with price data
+    const allCards = await prisma.card.findMany({
+      where: {
+        currentPrice: { not: null },
+        price24hAgo: { not: null, gt: 0 },
+      },
+      select: {
+        id: true,
+        cardId: true,
+        name: true,
+        rating: true,
+        position: true,
+        club: true,
+        league: true,
+        nation: true,
+        cardType: true,
+        currentPrice: true,
+        price24hAgo: true,
+        price7dAgo: true,
+        platform: true,
+        priceChange24h: true,
+      },
+    });
+
+    // Calculate price changes and filter by direction
+    let cardsWithChange = allCards.map(card => ({
+      ...card,
+      priceChangePercent: Number(card.priceChange24h || (card.price24hAgo && card.currentPrice
+        ? ((card.currentPrice - card.price24hAgo) / card.price24hAgo * 100)
+        : 0)),
+      priceChangeAmount: card.currentPrice && card.price24hAgo
+        ? Math.abs(card.currentPrice - card.price24hAgo)
+        : 0,
+    }));
+
+    // Filter by direction
+    if (direction === 'rising') {
+      cardsWithChange = cardsWithChange.filter(c => c.currentPrice! > c.price24hAgo!);
+    } else if (direction === 'falling') {
+      cardsWithChange = cardsWithChange.filter(c => c.currentPrice! < c.price24hAgo!);
+    }
+
+    // Sort by absolute price change percentage
+    cardsWithChange.sort((a, b) => Math.abs(b.priceChangePercent) - Math.abs(a.priceChangePercent));
+
+    // Take only the requested number
+    cardsWithChange = cardsWithChange.slice(0, Number(limit));
 
     const result = {
       timeframe,
-      cards: cards,
-      count: Array.isArray(cards) ? cards.length : 0,
+      cards: cardsWithChange,
+      count: cardsWithChange.length,
       cachedAt: new Date().toISOString(),
     };
 
