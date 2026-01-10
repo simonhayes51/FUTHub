@@ -3,6 +3,6 @@ builder = "NIXPACKS"
 buildCommand = "npm install --include=dev && npx prisma generate && npm run build"
 
 [deploy]
-startCommand = "npm run start"
+startCommand = "NODE_ENV=production npm run start"
 
-# Railway will automatically set PORT. This project binds to it via the start script.
+# Railway will automatically set PORT. Server binds to it via Express.
