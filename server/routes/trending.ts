@@ -1,8 +1,8 @@
 import express, { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '../lib/db.js';
+import { isMockMode, mockCards } from '../lib/mockData.js';
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 // Simple in-memory cache for trending data
 const trendingCache = new Map<string, { data: any; timestamp: number }>();
@@ -19,6 +19,26 @@ const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
  */
 router.get('/cards', async (req: Request, res: Response) => {
   try {
+    if (isMockMode) {
+      const { timeframe = '24h', limit = 20 } = req.query;
+      const cards = mockCards
+        .map((card) => ({
+          ...card,
+          priceChangePercent:
+            card.priceChangePercent ??
+            ((card.currentPrice - (card.price24hAgo || card.currentPrice)) /
+              (card.price24hAgo || card.currentPrice)) *
+              100,
+        }))
+        .slice(0, Number(limit));
+      return res.json({
+        timeframe,
+        cards,
+        count: cards.length,
+        cachedAt: new Date().toISOString(),
+      });
+    }
+
     const {
       timeframe = '24h',
       limit = 20,
@@ -117,6 +137,25 @@ router.get('/cards', async (req: Request, res: Response) => {
  */
 router.get('/summary', async (req: Request, res: Response) => {
   try {
+    if (isMockMode) {
+      const total = mockCards.length;
+      const trending = mockCards.filter((card) => (card.priceChangePercent || 0) >= 5).length;
+      const falling = mockCards.filter((card) => (card.priceChangePercent || 0) <= -5).length;
+      const stable = total - trending - falling;
+      return res.json({
+        timeframe: req.query.timeframe || '24h',
+        total,
+        trending,
+        falling,
+        stable,
+        thresholds: {
+          rise: Number(req.query.riseThreshold || 5),
+          fall: Number(req.query.fallThreshold || 5),
+        },
+        cachedAt: new Date().toISOString(),
+      });
+    }
+
     const {
       timeframe = '24h',
       riseThreshold = 5,
@@ -191,6 +230,20 @@ router.get('/summary', async (req: Request, res: Response) => {
  */
 router.get('/movers', async (req: Request, res: Response) => {
   try {
+    if (isMockMode) {
+      const sorted = [...mockCards].sort(
+        (a, b) => (b.priceChangePercent || 0) - (a.priceChangePercent || 0)
+      );
+      const limitCount = Number(req.query.limit || 10);
+      const gainers = sorted.slice(0, limitCount);
+      const losers = sorted.slice(-limitCount).reverse();
+      return res.json({
+        gainers,
+        losers,
+        cachedAt: new Date().toISOString(),
+      });
+    }
+
     const { limit = 10 } = req.query;
 
     const cacheKey = `movers_${limit}`;

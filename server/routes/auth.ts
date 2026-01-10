@@ -1,13 +1,30 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
 import { generateToken } from '../middleware/auth.js';
+import { isMockMode, mockUser, mockTraders } from '../lib/mockData.js';
 
 const router = Router();
 
 // Register
 router.post('/register', async (req, res) => {
   try {
+    if (isMockMode) {
+      const token = generateToken({
+        id: mockUser.id,
+        email: mockUser.email,
+        role: mockUser.role,
+      });
+      return res.status(201).json({
+        token,
+        user: {
+          ...mockUser,
+          trader: mockTraders[0] || null,
+        },
+      });
+    }
+
     const { email, username, password } = req.body;
 
     // Validation
@@ -65,6 +82,21 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
+    if (isMockMode) {
+      const token = generateToken({
+        id: mockUser.id,
+        email: mockUser.email,
+        role: mockUser.role,
+      });
+      return res.json({
+        token,
+        user: {
+          ...mockUser,
+          trader: mockTraders[0] || null,
+        },
+      });
+    }
+
     const { email, password } = req.body;
 
     // Validation
@@ -120,12 +152,19 @@ router.post('/login', async (req, res) => {
 // Get current user
 router.get('/me', async (req, res) => {
   try {
+    if (isMockMode) {
+      return res.json({
+        ...mockUser,
+        trader: mockTraders[0] || null,
+      });
+    }
+
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const decoded = require('jsonwebtoken').verify(
+    const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || '1ed7158e5f237cd10c501b0dd984cf14'
     ) as { id: string };

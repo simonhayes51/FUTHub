@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { isMockMode, mockUser } from '../lib/mockData.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || '1ed7158e5f237cd10c501b0dd984cf14';
 
@@ -12,6 +13,15 @@ export interface AuthRequest extends Request {
 }
 
 export const authenticate = (req: AuthRequest, res: Response, next: NextFunction) => {
+  if (isMockMode) {
+    req.user = {
+      id: mockUser.id,
+      email: mockUser.email,
+      role: mockUser.role,
+    };
+    return next();
+  }
+
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
 

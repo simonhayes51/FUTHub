@@ -10,7 +10,7 @@ interface TraderCardProps {
   avatar: string;
   specialty: string;
   winRate: number;
-  avgROI: string;
+  avgROI: number | string;
   subscribers: string;
   verified: boolean;
   price: string;
@@ -32,6 +32,13 @@ const TraderCard = ({
   const { isAuthenticated } = useAuth();
   const subscribeMutation = useSubscribe();
   const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
+  const formatPercent = (value: number | string) => {
+    if (typeof value === "string") {
+      return value.includes("%") ? value : `${value}%`;
+    }
+    return `${value}%`;
+  };
 
   const handleSubscribe = () => {
     if (!isAuthenticated) {
@@ -85,7 +92,7 @@ const TraderCard = ({
           <div className="p-3 rounded-lg bg-background/50">
             <div className="flex items-center gap-1 text-success mb-1">
               <TrendingUp className="w-4 h-4" />
-              <span className="font-bold">{avgROI}</span>
+              <span className="font-bold">{formatPercent(avgROI)}</span>
             </div>
             <span className="text-xs text-muted-foreground">Avg ROI</span>
           </div>
