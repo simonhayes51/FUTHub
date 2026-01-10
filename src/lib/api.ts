@@ -1,6 +1,10 @@
 // API Client for Transfer Traders Platform
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+// Use relative URL in production, localhost in development
+const API_URL = import.meta.env.VITE_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? '/api'  // Production: use relative URL
+    : 'http://localhost:3000/api'); // Development: use localhost
 
 class ApiClient {
   private getHeaders(): HeadersInit {
