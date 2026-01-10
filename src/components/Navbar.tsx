@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X, TrendingUp, Zap } from "lucide-react";
 
@@ -10,14 +11,14 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
             <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center glow-primary">
               <TrendingUp className="w-5 h-5 text-primary-foreground" />
             </div>
             <span className="font-display font-bold text-xl tracking-wider">
-              FC<span className="text-primary">HUB</span>
+              <span className="text-gradient-primary">TT</span>
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
@@ -38,10 +39,12 @@ const Navbar = () => {
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost">Log In</Button>
-            <Button variant="hero" size="lg">
-              <Zap className="w-4 h-4" />
-              Get Started
-            </Button>
+            <Link to="/feed">
+              <Button variant="hero" size="lg">
+                <Zap className="w-4 h-4" />
+                Get Started
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -71,10 +74,12 @@ const Navbar = () => {
               </a>
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
                 <Button variant="ghost" className="w-full">Log In</Button>
-                <Button variant="hero" className="w-full">
-                  <Zap className="w-4 h-4" />
-                  Get Started
-                </Button>
+                <Link to="/feed" className="w-full">
+                  <Button variant="hero" className="w-full">
+                    <Zap className="w-4 h-4" />
+                    Get Started
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

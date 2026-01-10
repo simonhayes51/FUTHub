@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, Shield, TrendingUp, Users } from "lucide-react";
 
@@ -32,13 +33,17 @@ const HeroSection = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
-            <Button variant="hero" size="xl">
-              <Zap className="w-5 h-5" />
-              Start Trading Free
-            </Button>
-            <Button variant="glass" size="xl">
-              Explore Traders
-            </Button>
+            <Link to="/feed">
+              <Button variant="hero" size="xl">
+                <Zap className="w-5 h-5" />
+                Start Trading Free
+              </Button>
+            </Link>
+            <Link to="/feed">
+              <Button variant="glass" size="xl">
+                Explore Traders
+              </Button>
+            </Link>
           </div>
 
           {/* Stats */}
