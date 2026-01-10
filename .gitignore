@@ -1,5 +1,11 @@
 node_modules
 dist
 .env
-.env.*
+.env.local
+.env.development
+.env.production
+.env.test
 .DS_Store
+
+# Allow .env.example to be committed
+!.env.example
