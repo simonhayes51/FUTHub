@@ -1,0 +1,515 @@
+// This is your Prisma schema file
+// Learn more: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+enum UserRole {
+  USER
+  TRADER
+  ADMIN
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  username      String   @unique
+  password      String   // Hashed with bcrypt
+  avatar        String?
+  bio           String?
+  level         Int      @default(1)
+  xp            Int      @default(0)
+  role          UserRole @default(USER)
+  verified      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  trader              Trader?
+  subscriptions       Subscription[]  @relation("UserSubscriptions")
+  posts               Post[]
+  comments            Comment[]
+  likes               Like[]
+  portfolio           Portfolio[]
+  priceAlerts         PriceAlert[]
+  notifications       Notification[]
+  achievements        UserAchievement[]
+  sentMessages        Message[]       @relation("SentMessages")
+  receivedMessages    Message[]       @relation("ReceivedMessages")
+
+  @@index([email])
+  @@index([username])
+}
+
+// ============================================
+// TRADER PROFILES
+// ============================================
+
+model Trader {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profile
+  displayName       String
+  specialty         String   // "Quick Flips", "SBC", "Icons", etc.
+  badge             String?  // Badge icon/image
+  coverImage        String?
+
+  // Stats
+  totalProfit       Float    @default(0)
+  winRate           Float    @default(0)
+  avgROI            Float    @default(0)
+  totalTrades       Int      @default(0)
+  subscriberCount   Int      @default(0)
+
+  // Subscription Pricing
+  monthlyPrice      Float    @default(0)
+  yearlyPrice       Float    @default(0)
+
+  // Social
+  discordServer     String?
+  twitterHandle     String?
+  youtubeChannel    String?
+
+  // Status
+  verified          Boolean  @default(false)
+  featured          Boolean  @default(false)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  posts             Post[]
+  subscribers       Subscription[]
+  stories           Story[]
+
+  @@index([userId])
+  @@index([specialty])
+  @@index([verified])
+}
+
+// ============================================
+// SUBSCRIPTIONS (OnlyFans Model)
+// ============================================
+
+enum SubscriptionTier {
+  MONTHLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+model Subscription {
+  id              String             @id @default(cuid())
+  userId          String
+  user            User               @relation("UserSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+  traderId        String
+  trader          Trader             @relation(fields: [traderId], references: [id], onDelete: Cascade)
+
+  tier            SubscriptionTier
+  status          SubscriptionStatus @default(ACTIVE)
+
+  // Dates
+  startDate       DateTime           @default(now())
+  renewalDate     DateTime
+  cancelledAt     DateTime?
+
+  // Payment
+  stripeCustomerId      String?
+  stripeSubscriptionId  String?
+  amount          Float
+
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  @@unique([userId, traderId])
+  @@index([userId])
+  @@index([traderId])
+  @@index([status])
+}
+
+// ============================================
+// POSTS / SIGNALS
+// ============================================
+
+enum PostType {
+  TRADE_TIP
+  QUICK_FLIP
+  INVESTMENT
+  SBC_SOLUTION
+  PREDICTION
+  MARKET_ANALYSIS
+  GUIDE
+}
+
+enum TradeRiskLevel {
+  SAFE
+  MEDIUM
+  RISKY
+  HIGH_RISK
+}
+
+enum TradeStatus {
+  ACTIVE
+  CLOSED
+  PENDING
+}
+
+model Post {
+  id              String          @id @default(cuid())
+  traderId        String
+  trader          Trader          @relation(fields: [traderId], references: [id], onDelete: Cascade)
+
+  // Content
+  type            PostType
+  title           String?
+  content         String
+  imageUrl        String?
+
+  // Card Details (for trade signals)
+  playerName      String?
+  cardType        String?         // "Gold", "TOTW", "Icon", etc.
+  rating          Int?
+  buyPriceMin     Float?
+  buyPriceMax     Float?
+  targetPrice     Float?
+  riskLevel       TradeRiskLevel?
+  tradeStatus     TradeStatus?
+
+  // ROI tracking
+  actualProfit    Float?
+  roi             Float?
+
+  // Engagement
+  likesCount      Int             @default(0)
+  commentsCount   Int             @default(0)
+  sharesCount     Int             @default(0)
+  viewsCount      Int             @default(0)
+
+  // Premium content
+  isPremium       Boolean         @default(false)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  comments        Comment[]
+  likes           Like[]
+
+  @@index([traderId])
+  @@index([type])
+  @@index([isPremium])
+  @@index([createdAt])
+}
+
+// ============================================
+// ENGAGEMENT (Comments, Likes)
+// ============================================
+
+model Comment {
+  id              String   @id @default(cuid())
+  postId          String
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  content         String
+
+  // Nested comments support
+  parentId        String?
+  parent          Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies         Comment[] @relation("CommentReplies")
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([postId])
+  @@index([userId])
+}
+
+model Like {
+  id              String   @id @default(cuid())
+  postId          String
+  post            Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([postId, userId])
+  @@index([postId])
+  @@index([userId])
+}
+
+// ============================================
+// FUT CARDS & MARKET DATA
+// ============================================
+
+enum Platform {
+  PS
+  XBOX
+  PC
+}
+
+model Card {
+  id              String   @id @default(cuid())
+
+  // Card Info
+  name            String
+  rating          Int
+  position        String?
+  nation          String?
+  league          String?
+  club            String?
+  cardType        String   // "Gold", "TOTW", "Icon", etc.
+  imageUrl        String?
+
+  // Market Data
+  platform        Platform
+  currentPrice    Float?
+  priceHistory    Json?    // Array of {date, price}
+
+  // Meta
+  lastUpdated     DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  priceAlerts     PriceAlert[]
+  portfolioItems  Portfolio[]
+
+  @@unique([name, cardType, platform])
+  @@index([name])
+  @@index([cardType])
+  @@index([platform])
+}
+
+// ============================================
+// PRICE ALERTS
+// ============================================
+
+enum AlertType {
+  PRICE_DROP
+  PRICE_RISE
+  TARGET_REACHED
+}
+
+model PriceAlert {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId          String
+  card            Card      @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  targetPrice     Float
+  alertType       AlertType
+  active          Boolean   @default(true)
+  triggered       Boolean   @default(false)
+  triggeredAt     DateTime?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([cardId])
+  @@index([active])
+}
+
+// ============================================
+// PORTFOLIO
+// ============================================
+
+enum PortfolioStatus {
+  HOLDING
+  SOLD
+  LISTED
+}
+
+model Portfolio {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cardId          String
+  card            Card            @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  quantity        Int             @default(1)
+  buyPrice        Float
+  currentPrice    Float?
+  sellPrice       Float?
+
+  status          PortfolioStatus @default(HOLDING)
+
+  // Tracking
+  profit          Float?
+  roi             Float?
+
+  purchasedAt     DateTime        @default(now())
+  soldAt          DateTime?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([cardId])
+  @@index([status])
+}
+
+// ============================================
+// NOTIFICATIONS
+// ============================================
+
+enum NotificationType {
+  TRADE_ALERT
+  PRICE_ALERT
+  NEW_COMMENT
+  NEW_LIKE
+  NEW_FOLLOWER
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_EXPIRED
+  NEW_POST
+  TRADE_RESULT
+  ACHIEVEMENT
+  SYSTEM
+}
+
+model Notification {
+  id              String            @id @default(cuid())
+  userId          String
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type            NotificationType
+  title           String
+  message         String
+  link            String?
+  imageUrl        String?
+
+  read            Boolean           @default(false)
+
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+// ============================================
+// ACHIEVEMENTS
+// ============================================
+
+enum AchievementType {
+  FIRST_PROFIT
+  PROFIT_MILESTONE
+  STREAK
+  TRADE_COUNT
+  WIN_RATE
+  PORTFOLIO_VALUE
+  SOCIAL_ENGAGEMENT
+  SPECIAL
+}
+
+model Achievement {
+  id              String            @id @default(cuid())
+
+  name            String            @unique
+  description     String
+  type            AchievementType
+  icon            String
+
+  // Requirements
+  requirement     Int               // Threshold to unlock
+
+  // Rewards
+  xpReward        Int               @default(0)
+
+  createdAt       DateTime          @default(now())
+
+  // Relations
+  earnedBy        UserAchievement[]
+}
+
+model UserAchievement {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievementId   String
+  achievement     Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  progress        Int      @default(0)
+  completed       Boolean  @default(false)
+
+  earnedAt        DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, achievementId])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+// ============================================
+// STORIES (Instagram-style)
+// ============================================
+
+model Story {
+  id              String   @id @default(cuid())
+  traderId        String
+  trader          Trader   @relation(fields: [traderId], references: [id], onDelete: Cascade)
+
+  imageUrl        String
+  content         String?
+  link            String?
+
+  // Live indicator
+  isLive          Boolean  @default(false)
+
+  // Auto-expire after 24 hours
+  expiresAt       DateTime
+
+  viewsCount      Int      @default(0)
+
+  createdAt       DateTime @default(now())
+
+  @@index([traderId])
+  @@index([expiresAt])
+  @@index([isLive])
+}
+
+// ============================================
+// MESSAGING (Optional - for future)
+// ============================================
+
+model Message {
+  id              String   @id @default(cuid())
+  senderId        String
+  sender          User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId      String
+  receiver        User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  content         String
+
+  read            Boolean  @default(false)
+  readAt          DateTime?
+
+  createdAt       DateTime @default(now())
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
