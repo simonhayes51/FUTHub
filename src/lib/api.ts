@@ -197,6 +197,41 @@ class ApiClient {
     return this.request<any>(`/cards/${id}/history`);
   }
 
+  // Trending & Market Data
+  async getTrendingCardsV2(params?: { timeframe?: '6h' | '12h' | '24h'; limit?: number; direction?: 'rising' | 'falling' | 'all' }) {
+    const query = new URLSearchParams();
+    if (params?.timeframe) query.append('timeframe', params.timeframe);
+    if (params?.limit) query.append('limit', params.limit.toString());
+    if (params?.direction) query.append('direction', params.direction);
+    return this.request<{ timeframe: string; cards: any[]; count: number; cachedAt: string }>(
+      `/trending/cards?${query.toString()}`
+    );
+  }
+
+  async getMarketSummary(params?: { timeframe?: '6h' | '12h' | '24h'; riseThreshold?: number; fallThreshold?: number }) {
+    const query = new URLSearchParams();
+    if (params?.timeframe) query.append('timeframe', params.timeframe);
+    if (params?.riseThreshold) query.append('riseThreshold', params.riseThreshold.toString());
+    if (params?.fallThreshold) query.append('fallThreshold', params.fallThreshold.toString());
+    return this.request<{
+      timeframe: string;
+      total: number;
+      trending: number;
+      falling: number;
+      stable: number;
+      thresholds: { rise: number; fall: number };
+      cachedAt: string;
+    }>(`/trending/summary?${query.toString()}`);
+  }
+
+  async getMarketMovers(limit = 10) {
+    return this.request<{
+      gainers: any[];
+      losers: any[];
+      cachedAt: string;
+    }>(`/trending/movers?limit=${limit}`);
+  }
+
   // Health check
   async healthCheck() {
     return this.request<{ status: string }>('/health');
