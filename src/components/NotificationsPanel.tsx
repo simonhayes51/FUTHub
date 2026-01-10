@@ -24,11 +24,14 @@ const NotificationsPanel = () => {
   const { toast } = useToast();
 
   // Fetch notifications from API
-  const { data: notifs = [], isLoading, error } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => api.getNotifications(),
     staleTime: 1000 * 60, // 1 minute
   });
+
+  const notifs = data?.notifications || [];
+  const serverUnreadCount = data?.unreadCount || 0;
 
   // Mark as read mutation
   const markAsReadMutation = useMutation({

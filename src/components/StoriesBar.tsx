@@ -1,74 +1,78 @@
 import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Story {
   id: string;
   trader: {
+    id: string;
     name: string;
     avatar: string;
+    verified: boolean;
   };
-  isNew: boolean;
+  imageUrl?: string;
+  content?: string;
   isLive?: boolean;
+  viewsCount: number;
 }
 
-const stories: Story[] = [
-  {
-    id: "create",
-    trader: { name: "Your Story", avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face" },
-    isNew: false,
-  },
-  {
-    id: "1",
-    trader: { name: "FlipKingFC", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face" },
-    isNew: true,
-    isLive: true,
-  },
-  {
-    id: "2",
-    trader: { name: "SBCMaster", avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face" },
-    isNew: true,
-  },
-  {
-    id: "3",
-    trader: { name: "MetaTrader", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face" },
-    isNew: true,
-  },
-  {
-    id: "4",
-    trader: { name: "IconInvestor", avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face" },
-    isNew: false,
-  },
-  {
-    id: "5",
-    trader: { name: "CoinKing", avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face" },
-    isNew: true,
-  },
-  {
-    id: "6",
-    trader: { name: "FlipQueen", avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face" },
-    isNew: false,
-  },
-];
-
 const StoriesBar = () => {
+  // Fetch stories from API
+  const { data: stories = [], isLoading } = useQuery({
+    queryKey: ['stories'],
+    queryFn: () => api.getStories(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+
+  // Add "Your Story" placeholder at the beginning
+  const allStories = [
+    {
+      id: "create",
+      trader: {
+        id: "create",
+        name: "Your Story",
+        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face",
+        verified: false,
+      },
+      viewsCount: 0,
+    },
+    ...stories,
+  ];
+
+  if (isLoading) {
+    return (
+      <div className="bg-card border border-border rounded-2xl p-4 mb-4">
+        <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2 flex-shrink-0">
+              <Skeleton className="w-16 h-16 rounded-full" />
+              <Skeleton className="h-3 w-12" />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="bg-card border border-border rounded-2xl p-4 mb-4">
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-        {stories.map((story, index) => (
+        {allStories.map((story, index) => (
           <button
             key={story.id}
             className="flex flex-col items-center gap-2 flex-shrink-0 group"
           >
             <div className={`relative p-0.5 rounded-full ${
-              story.isNew 
-                ? "bg-gradient-to-tr from-primary via-accent to-success" 
-                : index === 0 
-                ? "bg-transparent" 
+              index > 0 && story.viewsCount === 0
+                ? "bg-gradient-to-tr from-primary via-accent to-success"
+                : index === 0
+                ? "bg-transparent"
                 : "bg-border"
             }`}>
               <div className="p-0.5 bg-card rounded-full">
                 <div className="relative">
                   <img
-                    src={story.trader.avatar}
+                    src={story.trader.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face"}
                     alt={story.trader.name}
                     className="w-16 h-16 rounded-full object-cover group-hover:scale-105 transition-transform"
                   />

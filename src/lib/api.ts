@@ -168,6 +168,10 @@ class ApiClient {
     });
   }
 
+  async markNotificationAsRead(id: string) {
+    return this.markNotificationRead(id);
+  }
+
   async markAllNotificationsRead() {
     return this.request<any>('/notifications/read-all', {
       method: 'POST',
@@ -230,6 +234,35 @@ class ApiClient {
       losers: any[];
       cachedAt: string;
     }>(`/trending/movers?limit=${limit}`);
+  }
+
+  // Stories
+  async getStories() {
+    return this.request<any[]>('/stories');
+  }
+
+  async viewStory(id: string) {
+    return this.request<any>(`/stories/${id}/view`, {
+      method: 'POST',
+    });
+  }
+
+  // Price Alerts
+  async getPriceAlerts() {
+    return this.request<any[]>('/cards/price-alerts');
+  }
+
+  async createPriceAlert(data: { cardId: string; targetPrice: number; alertType: 'PRICE_DROP' | 'PRICE_RISE' }) {
+    return this.request<any>('/cards/price-alerts', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deletePriceAlert(id: string) {
+    return this.request<any>(`/cards/price-alerts/${id}`, {
+      method: 'DELETE',
+    });
   }
 
   // Health check
