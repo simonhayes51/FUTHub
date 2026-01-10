@@ -37,7 +37,6 @@ model User {
   // Relations
   trader              Trader?
   subscriptions       Subscription[]  @relation("UserSubscriptions")
-  posts               Post[]
   comments            Comment[]
   likes               Like[]
   portfolio           Portfolio[]
