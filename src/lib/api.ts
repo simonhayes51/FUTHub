@@ -136,7 +136,39 @@ class ApiClient {
   // Portfolio
   async getPortfolio(status?: string) {
     const query = status ? `?status=${status}` : '';
-    return this.request<{ portfolio: any[]; stats: any }>(`/portfolio${query}`);
+    const response = await this.request<{ portfolio: any[]; stats: any }>(`/portfolio${query}`);
+    const stats = response?.stats || {};
+    const portfolio = response?.portfolio || [];
+    const totalValue = stats.totalValue ?? 0;
+    const totalInvested = stats.totalInvested ?? 0;
+    const changePercent =
+      stats.changePercent ??
+      (totalInvested > 0
+        ? `${((totalValue - totalInvested) / totalInvested) * 100 >= 0 ? '+' : ''}${(
+            ((totalValue - totalInvested) / totalInvested) *
+            100
+          ).toFixed(1)}%`
+        : '+0%');
+
+    const recentTrades = portfolio.slice(0, 3).map((item: any) => ({
+      id: item.id,
+      name: item.card?.name || item.cardName || 'Unknown Card',
+      quantity: item.quantity,
+      buyPrice: item.buyPrice,
+      sellPrice: item.sellPrice,
+      profit: item.profit,
+      status: item.status,
+    }));
+
+    return {
+      totalValue,
+      changePercent,
+      totalInvested,
+      totalProfit: stats.totalProfit ?? 0,
+      activeCount: stats.activeInvestments ?? stats.activeCount ?? 0,
+      winRate: stats.winRate ?? 0,
+      recentTrades,
+    };
   }
 
   async addToPortfolio(data: { cardId: string; quantity: number; buyPrice: number }) {

@@ -1,12 +1,25 @@
 import { Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { isMockMode, mockNotifications } from '../lib/mockData.js';
 
 const router = Router();
 
 // Get user's notifications
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      const { unreadOnly = 'false', limit = '20' } = req.query;
+      const filtered = mockNotifications.filter((item) =>
+        unreadOnly === 'true' ? !item.read : true
+      );
+      const unreadCount = mockNotifications.filter((item) => !item.read).length;
+      return res.json({
+        notifications: filtered.slice(0, parseInt(limit as string)),
+        unreadCount,
+      });
+    }
+
     const userId = req.user!.id;
     const { unreadOnly = 'false', limit = '20' } = req.query;
 
@@ -43,6 +56,11 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 // Mark notification as read
 router.patch('/:id/read', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      const notification = mockNotifications.find((item) => item.id === req.params.id);
+      return res.json({ ...notification, read: true });
+    }
+
     const userId = req.user!.id;
     const id = req.params.id;
 
@@ -69,6 +87,10 @@ router.patch('/:id/read', authenticate, async (req: AuthRequest, res) => {
 // Mark all as read
 router.post('/read-all', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ message: 'All notifications marked as read' });
+    }
+
     const userId = req.user!.id;
 
     await prisma.notification.updateMany({
@@ -91,6 +113,10 @@ router.post('/read-all', authenticate, async (req: AuthRequest, res) => {
 // Delete notification
 router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ message: 'Notification deleted' });
+    }
+
     const userId = req.user!.id;
     const id = req.params.id;
 

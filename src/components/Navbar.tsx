@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X, TrendingUp, Zap, LogOut, User } from "lucide-react";
+import { Menu, X, Zap, LogOut, User } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
+import logo from "@/assets/transfer-traders-logo.svg";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,12 +37,14 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center glow-primary">
-                <TrendingUp className="w-5 h-5 text-primary-foreground" />
-              </div>
-              <span className="font-display font-bold text-xl tracking-wider">
-                <span className="text-gradient-primary">TT</span>
+            <Link to="/" className="flex items-center gap-3">
+              <img
+                src={logo}
+                alt="Transfer Traders"
+                className="w-10 h-10"
+              />
+              <span className="font-display font-bold text-lg tracking-wide">
+                <span className="text-gradient-primary">Transfer Traders</span>
               </span>
             </Link>
 

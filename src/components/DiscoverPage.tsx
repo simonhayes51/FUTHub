@@ -18,6 +18,13 @@ const DiscoverPage = () => {
   const { isAuthenticated } = useAuth();
   const subscribeMutation = useSubscribe();
 
+  const formatPercent = (value: number | string) => {
+    if (typeof value === "string") {
+      return value.includes("%") ? value : `${value}%`;
+    }
+    return `${value}%`;
+  };
+
   // Fetch traders from API with search filter
   const { data: traders = [], isLoading, error } = useTraders({
     search: searchQuery,
@@ -156,7 +163,7 @@ const DiscoverPage = () => {
                   <p className="text-xs text-muted-foreground">Win Rate</p>
                 </div>
                 <div className="text-center p-2 bg-background/50 rounded-lg">
-                  <p className="font-bold text-success">{trader.avgROI}</p>
+                  <p className="font-bold text-success">{formatPercent(trader.avgROI)}</p>
                   <p className="text-xs text-muted-foreground">Avg ROI</p>
                 </div>
                 <div className="text-center p-2 bg-background/50 rounded-lg">
@@ -223,7 +230,7 @@ const DiscoverPage = () => {
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-success" />
-                    {(trader as any).avgROI}%
+                    {formatPercent((trader as any).avgROI)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-3 h-3" />
