@@ -3,7 +3,7 @@ nixPkgs = ["nodejs_20"]
 
 [phases.install]
 cmds = [
-  "npm ci --include=dev --no-cache",
+  "npm install --include=dev",
   "npm list vite || echo 'Vite not found in node_modules'"
 ]
 
