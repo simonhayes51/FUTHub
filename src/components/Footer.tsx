@@ -1,4 +1,5 @@
 import { TrendingUp } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
@@ -24,10 +25,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Platform</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Browse Traders</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Trading Tools</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a></li>
+              <li><Link to="/feed?tab=discover" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Browse Traders</Link></li>
+              <li><a href="/#tools" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Trading Tools</a></li>
+              <li><a href="/#community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Community</a></li>
+              <li><a href="/#pricing" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Pricing</a></li>
             </ul>
           </div>
 
@@ -35,10 +36,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Creators</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Become a Trader</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Creator Tools</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Analytics</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Payouts</a></li>
+              <li><Link to="/feed?tab=profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Become a Trader</Link></li>
+              <li><Link to="/feed?tab=profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Creator Tools</Link></li>
+              <li><Link to="/feed?tab=profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Analytics</Link></li>
+              <li><Link to="/feed?tab=profile" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Payouts</Link></li>
             </ul>
           </div>
 
@@ -46,10 +47,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-foreground mb-4">Support</h4>
             <ul className="space-y-2">
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Discord</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</a></li>
-              <li><a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</a></li>
+              <li><Link to="/help" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Help Center</Link></li>
+              <li><a href="/#community" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Discord</a></li>
+              <li><Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Terms of Service</Link></li>
+              <li><Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Privacy Policy</Link></li>
             </ul>
           </div>
         </div>

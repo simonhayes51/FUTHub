@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, TrendingUp, Shield, Users, Star, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, TrendingUp, Shield, Users, Star, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTraders, useSubscribe } from "@/hooks/useTraders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/AuthModal";
 
 const categories = ["All", "Quick Flips", "SBC", "Icons", "Meta", "Budget"];
 const sortOptions = ["Popular", "Win Rate", "ROI", "Price: Low", "Price: High"];
@@ -14,6 +15,7 @@ const DiscoverPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedSort, setSelectedSort] = useState("Popular");
   const [showFilters, setShowFilters] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { isAuthenticated } = useAuth();
   const subscribeMutation = useSubscribe();
@@ -33,7 +35,7 @@ const DiscoverPage = () => {
 
   const handleSubscribe = (traderId: string) => {
     if (!isAuthenticated) {
-      // TODO: Show auth modal
+      setShowAuthModal(true);
       return;
     }
     subscribeMutation.mutate({ traderId, tier: 'MONTHLY' });
@@ -250,6 +252,12 @@ const DiscoverPage = () => {
           ))}
         </div>
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode="login"
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import SidebarNav from "@/components/SidebarNav";
 import SubscribedTraders from "@/components/SubscribedTraders";
@@ -18,6 +18,7 @@ import { Filter, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeed } from "@/hooks/useFeed";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSearchParams } from "react-router-dom";
 
 const subscribedTraders = [
   {
@@ -59,13 +60,37 @@ const FeedPage = () => {
   const [activeTrader, setActiveTrader] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchParams] = useSearchParams();
 
   // Fetch real feed data from API
   const { data: posts = [], isLoading, error } = useFeed({ limit: 20 });
 
+  useEffect(() => {
+    const tabParam = searchParams.get("tab");
+    const allowedTabs = new Set([
+      "feed",
+      "discover",
+      "notifications",
+      "prices",
+      "profile",
+      "trader-profile",
+    ]);
+
+    if (tabParam && allowedTabs.has(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, [searchParams]);
+
   const filteredPosts = activeTrader
     ? posts.filter((post: any) => post.traderId === activeTrader)
     : posts;
+
+  const renderPlaceholder = (title: string, description: string) => (
+    <div className="p-8 rounded-xl border border-border bg-card text-center">
+      <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+      <p className="text-sm text-muted-foreground mt-2">{description}</p>
+    </div>
+  );
 
   const renderMainContent = () => {
     switch (activeTab) {
@@ -79,6 +104,26 @@ const FeedPage = () => {
         return <UserDashboard />;
       case "trader-profile":
         return <TraderProfile />;
+      case "saved":
+        return renderPlaceholder(
+          "Saved Posts",
+          "Save tips and market calls to review them later. This feature is coming soon."
+        );
+      case "trends":
+        return renderPlaceholder(
+          "Market Trends",
+          "Live market trend dashboards are on the way. Check back soon."
+        );
+      case "sbc":
+        return renderPlaceholder(
+          "SBC Solver",
+          "We are polishing the SBC solver experience. Launching soon."
+        );
+      case "squad":
+        return renderPlaceholder(
+          "Squad Builder",
+          "Build and compare squads with community insights soon."
+        );
       default:
         return (
           <>

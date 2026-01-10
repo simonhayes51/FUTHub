@@ -4,6 +4,7 @@ import HeroSection from "@/components/HeroSection";
 import FeaturedTraders from "@/components/FeaturedTraders";
 import ToolsSection from "@/components/ToolsSection";
 import HowItWorks from "@/components/HowItWorks";
+import CommunitySection from "@/components/CommunitySection";
 import CTASection from "@/components/CTASection";
 import Footer from "@/components/Footer";
 
@@ -16,6 +17,7 @@ const Index = () => {
       <FeaturedTraders />
       <ToolsSection />
       <HowItWorks />
+      <CommunitySection />
       <CTASection />
       <Footer />
     </div>
