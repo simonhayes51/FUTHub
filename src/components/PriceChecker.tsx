@@ -13,11 +13,13 @@ const PriceChecker = () => {
   const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
 
   // Fetch trending cards from API
-  const { data: trendingPlayers = [], isLoading, error } = useQuery({
-    queryKey: ['cards', 'trending'],
-    queryFn: () => api.getCards({ limit: 10 }),
+  const { data: trendingData, isLoading, error } = useQuery({
+    queryKey: ['trending', 'cards'],
+    queryFn: () => api.getTrendingCardsV2({ timeframe: '24h', limit: 10, direction: 'all' }),
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  const trendingPlayers = trendingData?.cards || [];
 
   // Fetch price alerts
   const { data: priceAlerts = [] } = useQuery({
@@ -132,10 +134,10 @@ const PriceChecker = () => {
                   {player.currentPrice?.toLocaleString() || '0'}
                 </p>
                 <p className={`text-sm font-semibold flex items-center justify-end gap-1 ${
-                  (player.priceChange || 0) >= 0 ? "text-success" : "text-destructive"
+                  (player.priceChangePercent || 0) >= 0 ? "text-success" : "text-destructive"
                 }`}>
-                  {(player.priceChange || 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {(player.priceChange || 0) >= 0 ? '+' : ''}{player.priceChange || 0}%
+                  {(player.priceChangePercent || 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {(player.priceChangePercent || 0) >= 0 ? '+' : ''}{player.priceChangePercent || 0}%
                 </p>
               </div>
               <div className="flex gap-1">
