@@ -12,6 +12,7 @@ import portfolioRoutes from './routes/portfolio.js';
 import notificationsRoutes from './routes/notifications.js';
 import cardsRoutes from './routes/cards.js';
 import trendingRoutes from './routes/trending.js';
+import storiesRoutes from './routes/stories.js';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/portfolio', portfolioRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/cards', cardsRoutes);
 app.use('/api/trending', trendingRoutes);
+app.use('/api/stories', storiesRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
