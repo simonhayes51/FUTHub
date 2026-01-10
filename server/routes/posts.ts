@@ -21,6 +21,29 @@ function formatPrice(price: number): string {
   return price.toString();
 }
 
+function mapPostType(dbType: string): "trade" | "prediction" | "sbc" | "flip" {
+  const typeMap: Record<string, "trade" | "prediction" | "sbc" | "flip"> = {
+    'TRADE_TIP': 'trade',
+    'INVESTMENT': 'trade',
+    'MARKET_ANALYSIS': 'trade',
+    'GUIDE': 'trade',
+    'QUICK_FLIP': 'flip',
+    'PREDICTION': 'prediction',
+    'SBC_SOLUTION': 'sbc',
+  };
+  return typeMap[dbType] || 'trade';
+}
+
+function mapRiskLevel(dbRisk: string): "low" | "medium" | "high" {
+  const riskMap: Record<string, "low" | "medium" | "high"> = {
+    'SAFE': 'low',
+    'MEDIUM': 'medium',
+    'RISKY': 'high',
+    'HIGH_RISK': 'high',
+  };
+  return riskMap[dbRisk] || 'medium';
+}
+
 // Get feed (works for both authenticated and unauthenticated users)
 router.get('/feed', async (req: any, res) => {
   try {
@@ -119,12 +142,12 @@ router.get('/feed', async (req: any, res) => {
     // Transform to frontend format
     const transformedPosts = posts.map((post) => ({
       id: post.id,
-      type: post.type?.toLowerCase() || 'trade',
+      type: mapPostType(post.type),
       title: post.title,
       content: post.content,
       trader: {
         name: post.trader.user.username,
-        avatar: post.trader.user.avatar,
+        avatar: post.trader.user.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200',
         verified: post.trader.user.verified || post.trader.verified,
       },
       timeAgo: getTimeAgo(post.createdAt),
@@ -132,13 +155,13 @@ router.get('/feed', async (req: any, res) => {
       ...(post.playerName && {
         card: {
           name: post.playerName,
-          rating: post.rating,
+          image: post.imageUrl || 'https://cdn.futbin.com/content/fifa25/img/cards/players/1/e243010.png',
           buyPrice: post.buyPriceMin && post.buyPriceMax
             ? `${formatPrice(post.buyPriceMin)} - ${formatPrice(post.buyPriceMax)}`
             : null,
           sellPrice: post.targetPrice ? `${formatPrice(post.targetPrice)}+` : null,
           platform: 'All Platforms',
-          risk: (post.riskLevel?.toLowerCase() || 'medium') as 'low' | 'medium' | 'high',
+          risk: post.riskLevel ? mapRiskLevel(post.riskLevel) : 'medium',
           roi: post.targetPrice && post.buyPriceMin
             ? `+${Math.round(((post.targetPrice - post.buyPriceMin) / post.buyPriceMin) * 100)}%`
             : null,
