@@ -114,4 +114,36 @@ router.get('/:id/history', async (req, res) => {
   }
 });
 
+// Get price alerts (requires auth)
+router.get('/price-alerts', async (req, res) => {
+  try {
+    // For now, return empty array since this requires authentication
+    // The frontend will handle this gracefully
+    res.json([]);
+  } catch (error) {
+    console.error('Get price alerts error:', error);
+    res.status(500).json({ error: 'Failed to fetch price alerts' });
+  }
+});
+
+// Create price alert (requires auth)
+router.post('/price-alerts', async (req, res) => {
+  try {
+    res.status(401).json({ error: 'Authentication required' });
+  } catch (error) {
+    console.error('Create price alert error:', error);
+    res.status(500).json({ error: 'Failed to create price alert' });
+  }
+});
+
+// Delete price alert (requires auth)
+router.delete('/price-alerts/:id', async (req, res) => {
+  try {
+    res.status(401).json({ error: 'Authentication required' });
+  } catch (error) {
+    console.error('Delete price alert error:', error);
+    res.status(500).json({ error: 'Failed to delete price alert' });
+  }
+});
+
 export default router;
