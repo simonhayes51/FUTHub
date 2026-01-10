@@ -1,82 +1,10 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, TrendingUp, Shield, Users, Star, SlidersHorizontal } from "lucide-react";
+import { Search, Filter, TrendingUp, Shield, Users, Star, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const traders = [
-  {
-    id: "1",
-    name: "FlipKingFC",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-    specialty: "Quick Flips",
-    winRate: 94,
-    avgROI: "+32%",
-    subscribers: "4.2K",
-    price: "£14.99",
-    verified: true,
-    featured: true,
-  },
-  {
-    id: "2",
-    name: "SBCMaster",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-    specialty: "SBC Investments",
-    winRate: 88,
-    avgROI: "+28%",
-    subscribers: "2.8K",
-    price: "£9.99",
-    verified: true,
-    featured: false,
-  },
-  {
-    id: "3",
-    name: "MetaTraderPro",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-    specialty: "Meta Predictions",
-    winRate: 91,
-    avgROI: "+45%",
-    subscribers: "5.1K",
-    price: "£19.99",
-    verified: true,
-    featured: true,
-  },
-  {
-    id: "4",
-    name: "IconInvestor",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face",
-    specialty: "Icon Trading",
-    winRate: 86,
-    avgROI: "+24%",
-    subscribers: "1.9K",
-    price: "£12.99",
-    verified: true,
-    featured: false,
-  },
-  {
-    id: "5",
-    name: "CoinKingFC",
-    avatar: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=face",
-    specialty: "Market Analysis",
-    winRate: 89,
-    avgROI: "+35%",
-    subscribers: "8.2K",
-    price: "£17.99",
-    verified: true,
-    featured: true,
-  },
-  {
-    id: "6",
-    name: "FlipQueen",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face",
-    specialty: "Budget Flips",
-    winRate: 92,
-    avgROI: "+22%",
-    subscribers: "5.1K",
-    price: "£7.99",
-    verified: true,
-    featured: false,
-  },
-];
+import { useTraders, useSubscribe } from "@/hooks/useTraders";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/contexts/AuthContext";
 
 const categories = ["All", "Quick Flips", "SBC", "Icons", "Meta", "Budget"];
 const sortOptions = ["Popular", "Win Rate", "ROI", "Price: Low", "Price: High"];
@@ -87,10 +15,48 @@ const DiscoverPage = () => {
   const [selectedSort, setSelectedSort] = useState("Popular");
   const [showFilters, setShowFilters] = useState(false);
 
-  const filteredTraders = traders.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.specialty.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const { isAuthenticated } = useAuth();
+  const subscribeMutation = useSubscribe();
+
+  // Fetch traders from API with search filter
+  const { data: traders = [], isLoading, error } = useTraders({
+    search: searchQuery,
+    specialty: selectedCategory !== "All" ? selectedCategory : undefined
+  });
+
+  const handleSubscribe = (traderId: string) => {
+    if (!isAuthenticated) {
+      // TODO: Show auth modal
+      return;
+    }
+    subscribeMutation.mutate({ traderId, tier: 'MONTHLY' });
+  };
+
+  const filteredTraders = traders;
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <Skeleton className="h-9 w-64 mb-2" />
+          <Skeleton className="h-5 w-96" />
+        </div>
+        <div className="grid md:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-48 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 rounded-xl border border-destructive/50 bg-destructive/10 text-center">
+        <p className="text-destructive font-medium">Failed to load traders</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -201,10 +167,17 @@ const DiscoverPage = () => {
 
               <div className="flex items-center justify-between">
                 <div>
-                  <span className="font-display font-bold text-xl text-foreground">{trader.price}</span>
+                  <span className="font-display font-bold text-xl text-foreground">£{(trader as any).monthlyPrice}</span>
                   <span className="text-muted-foreground text-sm">/mo</span>
                 </div>
-                <Button variant="hero" size="sm">Subscribe</Button>
+                <Button
+                  variant="hero"
+                  size="sm"
+                  onClick={() => handleSubscribe((trader as any).id)}
+                  disabled={subscribeMutation.isPending}
+                >
+                  {subscribeMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Subscribe'}
+                </Button>
               </div>
             </motion.div>
           ))}
@@ -250,15 +223,20 @@ const DiscoverPage = () => {
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-success" />
-                    {trader.avgROI}
+                    {(trader as any).avgROI}%
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-3 h-3" />
-                    {trader.subscribers}
+                    {(trader as any).subscriberCount}
                   </span>
                 </div>
-                <Button variant="outline" size="sm">
-                  {trader.price}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleSubscribe((trader as any).id)}
+                  disabled={subscribeMutation.isPending}
+                >
+                  £{(trader as any).monthlyPrice}
                 </Button>
               </div>
             </motion.div>

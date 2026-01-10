@@ -1,23 +1,55 @@
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, Wallet, Target, Trophy, Flame, Star, Zap } from "lucide-react";
+import { TrendingUp, TrendingDown, Wallet, Target, Trophy, Flame, Star, Zap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PortfolioWidget = () => {
+  // Fetch portfolio data from API
+  const { data: portfolio, isLoading, error } = useQuery({
+    queryKey: ['portfolio'],
+    queryFn: () => api.getPortfolio(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-card border border-border rounded-2xl p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Wallet className="w-5 h-5 text-primary" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Skeleton className="h-12 w-full mb-4" />
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-16 w-full" />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-gradient-card border border-destructive/50 rounded-2xl p-5">
+        <p className="text-destructive text-sm">Failed to load portfolio</p>
+      </div>
+    );
+  }
+
+  // Extract portfolio stats from API data
   const portfolioData = {
-    totalValue: "4,250,000",
-    change: "+12.5%",
-    isUp: true,
-    invested: "3,200,000",
-    profit: "1,050,000",
-    activeInvestments: 12,
-    winRate: 87,
+    totalValue: portfolio?.totalValue?.toLocaleString() || "0",
+    change: portfolio?.changePercent || "+0%",
+    isUp: portfolio?.changePercent?.startsWith('+') || false,
+    invested: portfolio?.totalInvested?.toLocaleString() || "0",
+    profit: portfolio?.totalProfit?.toLocaleString() || "0",
+    activeInvestments: portfolio?.activeCount || 0,
+    winRate: portfolio?.winRate || 0,
   };
 
-  const recentTrades = [
-    { card: "Mbappé", profit: "+180K", isWin: true },
-    { card: "Haaland", profit: "+95K", isWin: true },
-    { card: "Salah", profit: "-25K", isWin: false },
-  ];
+  const recentTrades = portfolio?.recentTrades || [];
 
   return (
     <motion.div
@@ -87,14 +119,18 @@ const PortfolioWidget = () => {
       <div>
         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">Recent</p>
         <div className="space-y-2">
-          {recentTrades.map((trade, index) => (
-            <div key={index} className="flex items-center justify-between py-1">
-              <span className="text-sm text-foreground">{trade.card}</span>
-              <span className={`text-sm font-semibold ${trade.isWin ? "text-success" : "text-destructive"}`}>
-                {trade.profit}
-              </span>
-            </div>
-          ))}
+          {recentTrades.length > 0 ? (
+            recentTrades.map((trade: any, index: number) => (
+              <div key={index} className="flex items-center justify-between py-1">
+                <span className="text-sm text-foreground">{trade.card?.name || trade.cardName || 'Unknown'}</span>
+                <span className={`text-sm font-semibold ${(trade.profit || 0) >= 0 ? "text-success" : "text-destructive"}`}>
+                  {trade.profit >= 0 ? '+' : ''}{trade.profit?.toLocaleString() || '0'}
+                </span>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm text-muted-foreground text-center py-2">No recent trades</p>
+          )}
         </div>
       </div>
     </motion.div>

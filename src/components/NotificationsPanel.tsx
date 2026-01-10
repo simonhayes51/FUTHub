@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, Check, X, TrendingUp, MessageCircle, UserPlus, Zap, AlertTriangle, Gift } from "lucide-react";
+import { Bell, Check, X, TrendingUp, MessageCircle, UserPlus, Zap, AlertTriangle, Gift, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 interface Notification {
   id: string;
@@ -14,63 +18,34 @@ interface Notification {
   action?: string;
 }
 
-const notifications: Notification[] = [
-  {
-    id: "1",
-    type: "alert",
-    title: "Price Alert Triggered!",
-    message: "Mbappé just hit your target price of 1.3M",
-    time: "2 min ago",
-    read: false,
-  },
-  {
-    id: "2",
-    type: "trade",
-    title: "FlipKingFC posted",
-    message: "New Quick Flip alert - Time sensitive!",
-    time: "5 min ago",
-    read: false,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-  },
-  {
-    id: "3",
-    type: "result",
-    title: "Trade Result",
-    message: "Your Haaland investment hit the target! +95K profit",
-    time: "1 hour ago",
-    read: false,
-  },
-  {
-    id: "4",
-    type: "comment",
-    title: "SBCMaster replied",
-    message: "Great timing on that flip! 🔥",
-    time: "2 hours ago",
-    read: true,
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-  },
-  {
-    id: "5",
-    type: "follow",
-    title: "New Follower",
-    message: "MetaTraderPro started following you",
-    time: "3 hours ago",
-    read: true,
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-  },
-  {
-    id: "6",
-    type: "promo",
-    title: "Special Offer",
-    message: "Get 50% off your first trader subscription!",
-    time: "1 day ago",
-    read: true,
-  },
-];
-
 const NotificationsPanel = () => {
-  const [notifs, setNotifs] = useState(notifications);
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch notifications from API
+  const { data: notifs = [], isLoading, error } = useQuery({
+    queryKey: ['notifications'],
+    queryFn: () => api.getNotifications(),
+    staleTime: 1000 * 60, // 1 minute
+  });
+
+  // Mark as read mutation
+  const markAsReadMutation = useMutation({
+    mutationFn: (id: string) => api.markNotificationAsRead(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => api.deleteNotification(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast({ title: 'Notification deleted' });
+    },
+  });
 
   const typeIcons = {
     trade: TrendingUp,
@@ -91,19 +66,50 @@ const NotificationsPanel = () => {
   };
 
   const markAsRead = (id: string) => {
-    setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
+    markAsReadMutation.mutate(id);
   };
 
   const markAllAsRead = () => {
-    setNotifs(notifs.map(n => ({ ...n, read: true })));
+    // Mark all unread notifications as read
+    const unreadIds = notifs.filter((n: any) => !n.read).map((n: any) => n.id);
+    unreadIds.forEach(id => markAsReadMutation.mutate(id));
   };
 
   const deleteNotif = (id: string) => {
-    setNotifs(notifs.filter(n => n.id !== id));
+    deleteMutation.mutate(id);
   };
 
-  const filteredNotifs = filter === "unread" ? notifs.filter(n => !n.read) : notifs;
-  const unreadCount = notifs.filter(n => !n.read).length;
+  const filteredNotifs = filter === "unread" ? notifs.filter((n: any) => !n.read) : notifs;
+  const unreadCount = notifs.filter((n: any) => !n.read).length;
+
+  if (isLoading) {
+    return (
+      <div className="bg-card border border-border rounded-2xl overflow-hidden">
+        <div className="p-4 border-b border-border">
+          <Skeleton className="h-6 w-40" />
+        </div>
+        <div className="p-4 space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="flex gap-3">
+              <Skeleton className="w-10 h-10 rounded-full" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-3 w-full" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="bg-card border border-destructive/50 rounded-2xl p-8 text-center">
+        <p className="text-destructive font-medium">Failed to load notifications</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden">

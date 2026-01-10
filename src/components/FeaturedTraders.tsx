@@ -1,53 +1,10 @@
 import TraderCard from "./TraderCard";
-
-const traders = [
-  {
-    name: "FlipKingFC",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-    specialty: "Quick Flips & Sniping",
-    winRate: 94,
-    avgROI: "+32%",
-    subscribers: "4.2K",
-    verified: true,
-    price: "£14.99",
-    featured: true,
-  },
-  {
-    name: "SBCMaster",
-    avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-    specialty: "SBC Investments",
-    winRate: 88,
-    avgROI: "+28%",
-    subscribers: "2.8K",
-    verified: true,
-    price: "£9.99",
-    featured: false,
-  },
-  {
-    name: "MetaTraderPro",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-    specialty: "Meta Predictions",
-    winRate: 91,
-    avgROI: "+45%",
-    subscribers: "5.1K",
-    verified: true,
-    price: "£19.99",
-    featured: true,
-  },
-  {
-    name: "IconInvestor",
-    avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face",
-    specialty: "Icon Trading",
-    winRate: 86,
-    avgROI: "+24%",
-    subscribers: "1.9K",
-    verified: true,
-    price: "£12.99",
-    featured: false,
-  },
-];
+import { useTraders } from "@/hooks/useTraders";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const FeaturedTraders = () => {
+  // Fetch featured traders from API
+  const { data: traders = [], isLoading, error } = useTraders({ featured: true });
   return (
     <section id="traders" className="py-20 bg-gradient-dark">
       <div className="container mx-auto px-4">
@@ -64,9 +21,33 @@ const FeaturedTraders = () => {
         </div>
 
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {traders.map((trader, index) => (
-            <TraderCard key={index} {...trader} />
-          ))}
+          {isLoading ? (
+            // Loading skeletons
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="p-6 rounded-xl border border-border bg-card space-y-4">
+                <Skeleton className="w-20 h-20 rounded-full mx-auto" />
+                <Skeleton className="h-6 w-3/4 mx-auto" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ))
+          ) : error ? (
+            // Error state
+            <div className="col-span-full p-8 rounded-xl border border-destructive/50 bg-destructive/10 text-center">
+              <p className="text-destructive font-medium">Failed to load traders</p>
+            </div>
+          ) : traders.length === 0 ? (
+            // Empty state
+            <div className="col-span-full p-8 rounded-xl border border-border bg-card text-center">
+              <p className="text-muted-foreground">No featured traders available</p>
+            </div>
+          ) : (
+            // Traders
+            traders.map((trader: any, index: number) => (
+              <TraderCard key={trader.id || index} {...trader} />
+            ))
+          )}
         </div>
 
         <div className="text-center mt-10">

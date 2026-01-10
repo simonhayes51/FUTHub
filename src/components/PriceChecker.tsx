@@ -1,20 +1,30 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, TrendingUp, TrendingDown, Bell, Plus, History, Star } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Bell, Plus, History, Star, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
-const trendingPlayers = [
-  { name: "Kylian Mbappé", rating: 97, price: "1.25M", change: "+15%", isUp: true, image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&h=100&fit=crop" },
-  { name: "Erling Haaland", rating: 96, price: "890K", change: "+8%", isUp: true, image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=100&h=100&fit=crop" },
-  { name: "Jude Bellingham", rating: 95, price: "1.8M", change: "-3%", isUp: false, image: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=100&h=100&fit=crop" },
-  { name: "Vinícius Jr", rating: 95, price: "2.1M", change: "+12%", isUp: true, image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=100&h=100&fit=crop" },
-];
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const recentSearches = ["Mbappé", "Icon Ronaldo", "TOTY Cards", "85 Fodder"];
 
 const PriceChecker = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedPlayer, setSelectedPlayer] = useState<typeof trendingPlayers[0] | null>(null);
+  const [selectedPlayer, setSelectedPlayer] = useState<any>(null);
+
+  // Fetch trending cards from API
+  const { data: trendingPlayers = [], isLoading, error } = useQuery({
+    queryKey: ['cards', 'trending'],
+    queryFn: () => api.getCards({ limit: 10 }),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Fetch price alerts
+  const { data: priceAlerts = [] } = useQuery({
+    queryKey: ['price-alerts'],
+    queryFn: () => api.getPriceAlerts(),
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
 
   return (
     <div className="space-y-4">
@@ -69,7 +79,34 @@ const PriceChecker = () => {
         </div>
 
         <div className="divide-y divide-border">
-          {trendingPlayers.map((player, index) => (
+          {isLoading ? (
+            // Loading skeletons
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="p-4 flex items-center gap-4">
+                <Skeleton className="w-14 h-14 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-5 w-32" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-20" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+            ))
+          ) : error ? (
+            // Error state
+            <div className="p-8 text-center text-destructive">
+              <p>Failed to load trending players</p>
+            </div>
+          ) : trendingPlayers.length === 0 ? (
+            // Empty state
+            <div className="p-8 text-center text-muted-foreground">
+              <p>No trending players available</p>
+            </div>
+          ) : (
+            // Players
+            trendingPlayers.map((player: any, index: number) => (
             <motion.button
               key={index}
               initial={{ opacity: 0, y: 10 }}
@@ -78,27 +115,27 @@ const PriceChecker = () => {
               onClick={() => setSelectedPlayer(player)}
               className="w-full p-4 hover:bg-secondary/30 transition-colors flex items-center gap-4"
             >
-              <img
-                src={player.image}
-                alt={player.name}
-                className="w-14 h-14 rounded-xl object-cover border border-border"
-              />
+              <div className="w-14 h-14 rounded-xl bg-gradient-primary flex items-center justify-center text-white font-bold">
+                {player.rating}
+              </div>
               <div className="flex-1 text-left">
                 <div className="flex items-center gap-2">
                   <h4 className="font-semibold text-foreground">{player.name}</h4>
                   <span className="px-2 py-0.5 rounded bg-accent/20 text-accent text-xs font-bold">
-                    {player.rating}
+                    {player.position}
                   </span>
                 </div>
-                <p className="text-sm text-muted-foreground">Current Price</p>
+                <p className="text-sm text-muted-foreground">{player.club} • {player.league}</p>
               </div>
               <div className="text-right">
-                <p className="font-display font-bold text-lg text-foreground">{player.price}</p>
+                <p className="font-display font-bold text-lg text-foreground">
+                  {player.currentPrice?.toLocaleString() || '0'}
+                </p>
                 <p className={`text-sm font-semibold flex items-center justify-end gap-1 ${
-                  player.isUp ? "text-success" : "text-destructive"
+                  (player.priceChange || 0) >= 0 ? "text-success" : "text-destructive"
                 }`}>
-                  {player.isUp ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                  {player.change}
+                  {(player.priceChange || 0) >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {(player.priceChange || 0) >= 0 ? '+' : ''}{player.priceChange || 0}%
                 </p>
               </div>
               <div className="flex gap-1">
@@ -110,7 +147,8 @@ const PriceChecker = () => {
                 </Button>
               </div>
             </motion.button>
-          ))}
+          ))
+          )}
         </div>
       </div>
 
@@ -128,20 +166,25 @@ const PriceChecker = () => {
         </div>
 
         <div className="space-y-3">
-          <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-xl">
-            <div>
-              <p className="font-medium text-foreground">Mbappé</p>
-              <p className="text-sm text-muted-foreground">Alert when below 1.2M</p>
+          {priceAlerts.length > 0 ? (
+            priceAlerts.map((alert: any) => (
+              <div key={alert.id} className="flex items-center justify-between p-3 bg-secondary/30 rounded-xl">
+                <div>
+                  <p className="font-medium text-foreground">{alert.card?.name || 'Unknown'}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Alert when {alert.alertType === 'PRICE_DROP' ? 'below' : 'above'} {alert.targetPrice?.toLocaleString()}
+                  </p>
+                </div>
+                <span className={`text-sm ${alert.active ? 'text-success' : 'text-muted-foreground'}`}>
+                  {alert.active ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              <p>No price alerts set</p>
             </div>
-            <span className="text-sm text-success">Active</span>
-          </div>
-          <div className="flex items-center justify-between p-3 bg-secondary/30 rounded-xl">
-            <div>
-              <p className="font-medium text-foreground">Haaland</p>
-              <p className="text-sm text-muted-foreground">Alert when above 950K</p>
-            </div>
-            <span className="text-sm text-success">Active</span>
-          </div>
+          )}
         </div>
       </div>
     </div>
