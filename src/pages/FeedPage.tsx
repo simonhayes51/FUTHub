@@ -14,8 +14,10 @@ import DiscoverPage from "@/components/DiscoverPage";
 import UserDashboard from "@/components/UserDashboard";
 import MobileNav from "@/components/MobileNav";
 import CreatePostModal from "@/components/CreatePostModal";
-import { Filter, Sparkles, Plus } from "lucide-react";
+import { Filter, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useFeed } from "@/hooks/useFeed";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const subscribedTraders = [
   {
@@ -52,102 +54,17 @@ const subscribedTraders = [
   },
 ];
 
-const posts = [
-  {
-    id: "1",
-    trader: {
-      name: "FlipKingFC",
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face",
-      verified: true,
-    },
-    type: "flip" as const,
-    timeAgo: "5 min ago",
-    content: "🚨 QUICK FLIP ALERT! Mbappé is about to spike due to upcoming SBC requirements. Get in NOW before it's too late. This is a time-sensitive opportunity!",
-    card: {
-      name: "Kylian Mbappé",
-      image: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=200&h=300&fit=crop",
-      buyPrice: "1.1M - 1.15M",
-      sellPrice: "1.35M+",
-      platform: "All Platforms",
-      risk: "medium" as const,
-      roi: "+18%",
-      isProfit: true,
-    },
-    likes: 234,
-    comments: 45,
-  },
-  {
-    id: "2",
-    trader: {
-      name: "SBCMaster",
-      avatar: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face",
-      verified: true,
-    },
-    type: "sbc" as const,
-    timeAgo: "32 min ago",
-    content: "The new Icon SBC is coming this Friday. Stock up on these 86-rated fodder cards NOW. They're at their lowest price point of the week. Easy 30-40% profit when the SBC drops.",
-    card: {
-      name: "86 Rated Fodder",
-      image: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=200&h=300&fit=crop",
-      buyPrice: "18K - 20K",
-      sellPrice: "28K+",
-      platform: "PS & Xbox",
-      risk: "low" as const,
-      roi: "+42%",
-      isProfit: true,
-    },
-    likes: 567,
-    comments: 89,
-  },
-  {
-    id: "3",
-    trader: {
-      name: "MetaTraderPro",
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face",
-      verified: true,
-    },
-    type: "prediction" as const,
-    timeAgo: "1 hour ago",
-    content: "📊 MARKET ANALYSIS: The TOTY promo is 3 weeks away. Based on historical data, we're about to see a major market crash. I'm liquidating 70% of my club value today. Here's my full breakdown...",
-    likes: 892,
-    comments: 156,
-    isPremium: true,
-  },
-  {
-    id: "4",
-    trader: {
-      name: "IconInvestor",
-      avatar: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&h=200&fit=crop&crop=face",
-      verified: true,
-    },
-    type: "trade" as const,
-    timeAgo: "2 hours ago",
-    content: "Baby Gullit just hit his lowest price in 2 weeks. This is a solid long-term hold. He's an elite card that always rebounds. Perfect time to invest if you have the coins.",
-    card: {
-      name: "Ruud Gullit (Baby)",
-      image: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=200&h=300&fit=crop",
-      buyPrice: "2.8M - 2.9M",
-      sellPrice: "3.4M+",
-      platform: "All Platforms",
-      risk: "low" as const,
-      roi: "+20%",
-      isProfit: true,
-    },
-    likes: 423,
-    comments: 67,
-  },
-];
-
 const FeedPage = () => {
   const [activeTab, setActiveTab] = useState("feed");
   const [activeTrader, setActiveTrader] = useState<string | null>(null);
   const [feedFilter, setFeedFilter] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  // Fetch real feed data from API
+  const { data: posts = [], isLoading, error } = useFeed({ limit: 20 });
+
   const filteredPosts = activeTrader
-    ? posts.filter((post) => 
-        subscribedTraders.find(t => t.id === activeTrader)?.name === post.trader.name
-      )
+    ? posts.filter((post: any) => post.traderId === activeTrader)
     : posts;
 
   const renderMainContent = () => {
@@ -213,9 +130,45 @@ const FeedPage = () => {
 
             {/* Posts */}
             <div className="space-y-4">
-              {filteredPosts.map((post) => (
-                <PostCard key={post.id} {...post} />
-              ))}
+              {isLoading ? (
+                // Loading skeletons
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="p-6 rounded-xl border border-border bg-card space-y-4">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="w-10 h-10 rounded-full" />
+                        <div className="space-y-2">
+                          <Skeleton className="h-4 w-32" />
+                          <Skeleton className="h-3 w-24" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-40 w-full" />
+                    </div>
+                  ))}
+                </>
+              ) : error ? (
+                // Error state
+                <div className="p-8 rounded-xl border border-destructive/50 bg-destructive/10 text-center">
+                  <p className="text-destructive font-medium">Failed to load feed</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {error instanceof Error ? error.message : 'Something went wrong'}
+                  </p>
+                </div>
+              ) : filteredPosts.length === 0 ? (
+                // Empty state
+                <div className="p-8 rounded-xl border border-border bg-card text-center">
+                  <p className="text-muted-foreground">No posts to show</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Subscribe to traders to see their content here
+                  </p>
+                </div>
+              ) : (
+                // Posts
+                filteredPosts.map((post: any) => (
+                  <PostCard key={post.id} {...post} />
+                ))
+              )}
             </div>
           </>
         );

@@ -1,7 +1,11 @@
-import { TrendingUp, Star, Shield, Users } from "lucide-react";
+import { TrendingUp, Star, Shield, Users, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSubscribe } from "@/hooks/useTraders";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 interface TraderCardProps {
+  id: string;
   name: string;
   avatar: string;
   specialty: string;
@@ -14,6 +18,7 @@ interface TraderCardProps {
 }
 
 const TraderCard = ({
+  id,
   name,
   avatar,
   specialty,
@@ -24,6 +29,18 @@ const TraderCard = ({
   price,
   featured = false,
 }: TraderCardProps) => {
+  const { isAuthenticated } = useAuth();
+  const subscribeMutation = useSubscribe();
+  const [showAuthPrompt, setShowAuthPrompt] = useState(false);
+
+  const handleSubscribe = () => {
+    if (!isAuthenticated) {
+      setShowAuthPrompt(true);
+      return;
+    }
+
+    subscribeMutation.mutate({ traderId: id, tier: 'MONTHLY' });
+  };
   return (
     <div
       className={`relative rounded-2xl bg-gradient-card border overflow-hidden card-hover ${
@@ -87,8 +104,20 @@ const TraderCard = ({
             <span className="text-2xl font-display font-bold text-foreground">{price}</span>
             <span className="text-muted-foreground text-sm">/month</span>
           </div>
-          <Button variant={featured ? "hero" : "outline"} size="sm">
-            Subscribe
+          <Button
+            variant={featured ? "hero" : "outline"}
+            size="sm"
+            onClick={handleSubscribe}
+            disabled={subscribeMutation.isPending}
+          >
+            {subscribeMutation.isPending ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Subscribing...
+              </>
+            ) : (
+              'Subscribe'
+            )}
           </Button>
         </div>
       </div>

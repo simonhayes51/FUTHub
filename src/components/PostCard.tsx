@@ -1,8 +1,10 @@
 import { Heart, MessageCircle, Bookmark, Share2, TrendingUp, TrendingDown, Clock, Shield, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useLikePost } from "@/hooks/useFeed";
 
 interface PostCardProps {
+  id: string;
   trader: {
     name: string;
     avatar: string;
@@ -27,6 +29,7 @@ interface PostCardProps {
 }
 
 const PostCard = ({
+  id,
   trader,
   type,
   timeAgo,
@@ -39,6 +42,8 @@ const PostCard = ({
   const [liked, setLiked] = useState(false);
   const [bookmarked, setBookmarked] = useState(false);
   const [likeCount, setLikeCount] = useState(likes);
+
+  const likeMutation = useLikePost();
 
   const typeStyles = {
     trade: { bg: "bg-primary/20", text: "text-primary", label: "Trade Tip" },
@@ -54,8 +59,19 @@ const PostCard = ({
   };
 
   const handleLike = () => {
+    // Optimistic update
+    const wasLiked = liked;
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+
+    // Call API
+    likeMutation.mutate(id, {
+      onError: () => {
+        // Revert on error
+        setLiked(wasLiked);
+        setLikeCount(wasLiked ? likeCount : likeCount - 1);
+      },
+    });
   };
 
   return (
