@@ -1,8 +1,9 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "npm install --include=dev && npx prisma generate && npm run build"
+buildCommand = "npm install --include=dev && npx prisma generate && npx prisma db push --accept-data-loss && npm run db:seed && npm run build"
 
 [deploy]
 startCommand = "NODE_ENV=production npm run start"
 
 # Railway will automatically set PORT. Server binds to it via Express.
+# NOTE: After first successful deploy, remove 'npx prisma db push --accept-data-loss && npm run db:seed &&' from buildCommand
