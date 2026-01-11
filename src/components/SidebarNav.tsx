@@ -1,4 +1,4 @@
-import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut, MessageCircle } from "lucide-react";
+import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut, MessageCircle, LineChart, Eye } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoIcon from "@/assets/transfer-traders-icon.svg";
 
@@ -16,6 +16,8 @@ const navItems = [
 ];
 
 const toolItems = [
+  { id: "trades", label: "My Trades", icon: LineChart },
+  { id: "watchlist", label: "Watchlists", icon: Eye },
   { id: "prices", label: "Price Checker", icon: Search },
   { id: "trends", label: "Market Trends", icon: TrendingUp },
   { id: "sbc", label: "SBC Solver", icon: Calculator },
