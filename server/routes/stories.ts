@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
 import jwt from 'jsonwebtoken';
 import { isMockMode, mockStories } from '../lib/mockData.js';

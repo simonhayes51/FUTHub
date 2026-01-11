@@ -1,13 +1,13 @@
 import { motion } from "framer-motion";
-import { 
-  User, 
-  Settings, 
-  CreditCard, 
-  Bell, 
-  Shield, 
-  TrendingUp, 
-  Wallet, 
-  Star, 
+import {
+  User,
+  Settings,
+  CreditCard,
+  Bell,
+  Shield,
+  TrendingUp,
+  Wallet,
+  Star,
   Calendar,
   Edit,
   ExternalLink,
@@ -17,22 +17,31 @@ import {
   ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 
 const UserDashboard = () => {
+  const { user: authUser } = useAuth();
+
+  // Format join date
+  const formatJoinDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+
   const user = {
-    name: "Alex Player",
-    username: "@alexplayer",
-    avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
-    joinDate: "Jan 2024",
-    level: 24,
-    xp: 12450,
-    xpToNext: 15000,
-    rank: 847,
+    name: authUser?.username || "Guest User",
+    username: `@${authUser?.username?.toLowerCase() || "guest"}`,
+    avatar: authUser?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=400&h=400&fit=crop&crop=face",
+    joinDate: authUser?.createdAt ? formatJoinDate(authUser.createdAt) : "Recently",
+    level: authUser?.level || 1,
+    xp: authUser?.xp || 0,
+    xpToNext: ((authUser?.level || 1) + 1) * 1000,
+    rank: 847, // TODO: Calculate from backend
     stats: {
-      totalProfit: "+2.4M",
-      winRate: 78,
-      tradesExecuted: 156,
-      subscriptions: 4,
+      totalProfit: "+2.4M", // TODO: Get from portfolio/trades API
+      winRate: 78, // TODO: Calculate from trades
+      tradesExecuted: 156, // TODO: Get from trades API
+      subscriptions: 4, // TODO: Get from subscriptions API
     },
   };
 
