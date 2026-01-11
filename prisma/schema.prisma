@@ -316,6 +316,7 @@ model Card {
   @@index([platform])
   @@index([currentPrice])
   @@index([priceChange24h])
+  @@map("fut_players")
 }
 
 // ============================================

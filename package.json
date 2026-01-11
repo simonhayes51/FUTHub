@@ -7,7 +7,7 @@
     "dev": "concurrently \"vite\" \"tsx watch server/index.ts\"",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch server/index.ts",
-    "build": "prisma generate && prisma db push --accept-data-loss && tsx prisma/safe-seed.ts && vite build",
+    "build": "prisma generate && prisma db push --accept-data-loss && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
