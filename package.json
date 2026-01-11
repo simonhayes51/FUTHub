@@ -7,7 +7,7 @@
     "dev": "concurrently \"vite\" \"tsx watch server/index.ts\"",
     "dev:frontend": "vite",
     "dev:backend": "tsx watch server/index.ts",
-    "build": "prisma generate && prisma db push --accept-data-loss && vite build",
+    "build": "prisma generate && prisma db push --accept-data-loss && tsx prisma/safe-seed.ts && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
@@ -17,7 +17,8 @@
     "db:migrate": "prisma migrate dev",
     "db:migrate:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "db:seed:safe": "tsx prisma/safe-seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
