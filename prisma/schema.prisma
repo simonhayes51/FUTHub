@@ -283,9 +283,26 @@ model Card {
   cardType        String   // "Gold", "TOTW", "Icon", etc.
   imageUrl        String?
 
+  // Player Stats
+  pace            Int?
+  shooting        Int?
+  passing         Int?
+  dribbling       Int?
+  defending       Int?
+  physicality     Int?
+
+  // Player Details
+  skillMoves      Int?     // 1-5 stars
+  weakFoot        Int?     // 1-5 stars
+  age             Int?
+  preferredFoot   String?  // "Left", "Right"
+  accelerate      String?  // "CONTROLLED", "LENGTHY", "EXPLOSIVE"
+
   // Market Data
   platform        Platform
   currentPrice    Float?
+  minPrice        Float?   // Price range minimum
+  maxPrice        Float?   // Price range maximum
   price24hAgo     Float?   // Price 24 hours ago
   price7dAgo      Float?   // Price 7 days ago
   price30dAgo     Float?   // Price 30 days ago
@@ -295,6 +312,7 @@ model Card {
   priceChange24h  Float?   // Percentage change in 24h
   priceChange7d   Float?   // Percentage change in 7d
   priceChange30d  Float?   // Percentage change in 30d
+  trendAbsolute   Float?   // Absolute price change
 
   // Volatility
   volatility      Float?   // Price volatility score (0-100)
