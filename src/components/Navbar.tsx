@@ -37,15 +37,12 @@ const Navbar = () => {
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2">
               <img
                 src={logo}
                 alt="Transfer Traders"
-                className="w-10 h-10"
+                className="h-12"
               />
-              <span className="font-display font-bold text-lg tracking-wide">
-                <span className="text-gradient-primary">Transfer Traders</span>
-              </span>
             </Link>
 
             {/* Desktop Navigation */}
