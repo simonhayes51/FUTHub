@@ -306,10 +306,6 @@ model Card {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // Relations
-  priceAlerts     PriceAlert[]
-  portfolioItems  Portfolio[]
-
   @@unique([name, cardType, platform])
   @@index([name])
   @@index([cardType])
@@ -333,8 +329,7 @@ model PriceAlert {
   id              String    @id @default(cuid())
   userId          String
   user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cardId          String?
-  card            Card?     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId          String?   // Reference to fut_players, no FK constraint
 
   targetPrice     Float
   alertType       AlertType
@@ -364,8 +359,7 @@ model Portfolio {
   id              String          @id @default(cuid())
   userId          String
   user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  cardId          String?
-  card            Card?           @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  cardId          String?         // Reference to fut_players, no FK constraint
 
   quantity        Int             @default(1)
   buyPrice        Float
