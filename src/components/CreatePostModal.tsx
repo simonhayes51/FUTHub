@@ -2,6 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { X, Image, TrendingUp, Zap, Calendar, AlertTriangle, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 interface CreatePostModalProps {
   isOpen: boolean;
@@ -22,6 +24,86 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
   const [buyPrice, setBuyPrice] = useState("");
   const [sellPrice, setSellPrice] = useState("");
   const [risk, setRisk] = useState("medium");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const queryClient = useQueryClient();
+
+  const createPostMutation = useMutation({
+    mutationFn: (data: any) => api.createPost(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['feed'] });
+      queryClient.invalidateQueries({ queryKey: ['posts'] });
+      // Reset form
+      setContent("");
+      setCardName("");
+      setBuyPrice("");
+      setSellPrice("");
+      setRisk("medium");
+      setSelectedType("trade");
+      onClose();
+    },
+    onError: (error: any) => {
+      alert(error.message || "Failed to create post. Please try again.");
+    },
+    onSettled: () => {
+      setIsSubmitting(false);
+    },
+  });
+
+  const mapTypeToBackend = (type: string) => {
+    const typeMap: Record<string, string> = {
+      'trade': 'TRADE_TIP',
+      'flip': 'QUICK_FLIP',
+      'sbc': 'SBC_SOLUTION',
+      'prediction': 'PREDICTION',
+    };
+    return typeMap[type] || 'TRADE_TIP';
+  };
+
+  const mapRiskToBackend = (risk: string) => {
+    const riskMap: Record<string, string> = {
+      'low': 'SAFE',
+      'medium': 'MEDIUM',
+      'high': 'RISKY',
+    };
+    return riskMap[risk] || 'MEDIUM';
+  };
+
+  const parsePrice = (priceString: string): number | null => {
+    if (!priceString) return null;
+    // Remove commas, spaces, and convert M/K to numbers
+    const cleaned = priceString.replace(/,/g, '').trim();
+    if (cleaned.includes('M')) {
+      return parseFloat(cleaned.replace('M', '')) * 1000000;
+    } else if (cleaned.includes('K')) {
+      return parseFloat(cleaned.replace('K', '')) * 1000;
+    }
+    return parseFloat(cleaned) || null;
+  };
+
+  const handleSubmit = () => {
+    if (!content || !cardName) {
+      alert("Please fill in content and card name");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    const postData = {
+      type: mapTypeToBackend(selectedType),
+      title: content.slice(0, 100), // Use first 100 chars as title
+      content,
+      playerName: cardName,
+      buyPriceMin: parsePrice(buyPrice.split('-')[0]) || parsePrice(buyPrice),
+      buyPriceMax: parsePrice(buyPrice.split('-')[1]) || parsePrice(buyPrice),
+      targetPrice: parsePrice(sellPrice),
+      riskLevel: mapRiskToBackend(risk),
+      tradeStatus: 'ACTIVE',
+      isPremium: false,
+    };
+
+    createPostMutation.mutate(postData);
+  };
 
   if (!isOpen) return null;
 
@@ -164,10 +246,14 @@ const CreatePostModal = ({ isOpen, onClose }: CreatePostModalProps) => {
             {content.length}/500 characters
           </p>
           <div className="flex gap-2">
-            <Button variant="ghost" onClick={onClose}>Cancel</Button>
-            <Button variant="hero" disabled={!content || !cardName}>
+            <Button variant="ghost" onClick={onClose} disabled={isSubmitting}>Cancel</Button>
+            <Button
+              variant="hero"
+              onClick={handleSubmit}
+              disabled={!content || !cardName || isSubmitting}
+            >
               <Send className="w-4 h-4 mr-1" />
-              Post
+              {isSubmitting ? "Posting..." : "Post"}
             </Button>
           </div>
         </div>
