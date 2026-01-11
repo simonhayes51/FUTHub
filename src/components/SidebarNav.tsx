@@ -1,4 +1,4 @@
-import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut } from "lucide-react";
+import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut, MessageCircle } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import logoIcon from "@/assets/transfer-traders-icon.svg";
 
@@ -10,6 +10,7 @@ interface SidebarNavProps {
 const navItems = [
   { id: "feed", label: "Feed", icon: Home },
   { id: "discover", label: "Discover", icon: Compass },
+  { id: "messages", label: "Messages", icon: MessageCircle, badge: 2 },
   { id: "notifications", label: "Notifications", icon: Bell, badge: 3 },
   { id: "saved", label: "Saved", icon: Bookmark },
 ];
