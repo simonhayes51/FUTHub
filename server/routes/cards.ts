@@ -24,7 +24,9 @@ router.get('/search', async (req, res) => {
 
     const { q, platform = 'PS', limit = '20' } = req.query;
 
-    const where: any = { platform };
+    // Convert platform to uppercase to match Platform enum (PS, XBOX, PC)
+    const platformUpper = (platform as string).toUpperCase();
+    const where: any = { platform: platformUpper };
 
     if (q) {
       where.OR = [
@@ -76,13 +78,15 @@ router.get('/trending', async (req, res) => {
       take: parseInt(limit as string),
     });
 
+    const platformUpper = (platform as string).toUpperCase();
+
     const cards = await Promise.all(
       recentPosts.map(async (post) => {
         return await prisma.card.findFirst({
           where: {
             name: post.playerName!,
             cardType: post.cardType || undefined,
-            platform: platform as any,
+            platform: platformUpper as any,
           },
         });
       })
