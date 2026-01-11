@@ -270,66 +270,44 @@ enum Platform {
 }
 
 model Card {
-  id              String   @id @default(cuid())
-  cardId          Int?     // FUT.GG card ID
+  id              String    @id @default(uuid())
+  cardId          Int?      @map("card_id")
 
   // Card Info
   name            String
   rating          Int
   position        String?
+  altPosition     String?   @map("altposition")
   nation          String?
   league          String?
   club            String?
-  cardType        String   // "Gold", "TOTW", "Icon", etc.
-  imageUrl        String?
+  version         String?   // "Gold", "TOTW", "Icon"
+  rarity          String?
+  imageUrl        String?   @map("image_url")
+  playerUrl       String?   @map("player_url")
+  playerSlug      String?   @map("player_slug")
+  cardIds         String?   @map("card_ids")
 
-  // Player Stats
-  pace            Int?
-  shooting        Int?
-  passing         Int?
-  dribbling       Int?
-  defending       Int?
-  physicality     Int?
-
-  // Player Details
-  skillMoves      Int?     // 1-5 stars
-  weakFoot        Int?     // 1-5 stars
-  age             Int?
-  preferredFoot   String?  // "Left", "Right"
-  accelerate      String?  // "CONTROLLED", "LENGTHY", "EXPLOSIVE"
+  // Name components
+  firstName       String?   @map("first_name")
+  lastName        String?   @map("last_name")
+  nickname        String?
 
   // Market Data
-  platform        Platform
-  currentPrice    Float?
-  minPrice        Float?   // Price range minimum
-  maxPrice        Float?   // Price range maximum
-  price24hAgo     Float?   // Price 24 hours ago
-  price7dAgo      Float?   // Price 7 days ago
-  price30dAgo     Float?   // Price 30 days ago
-  priceHistory    Json?    // Array of {date, price}
-
-  // Price Change Tracking
-  priceChange24h  Float?   // Percentage change in 24h
-  priceChange7d   Float?   // Percentage change in 7d
-  priceChange30d  Float?   // Percentage change in 30d
-  trendAbsolute   Float?   // Absolute price change
-
-  // Volatility
-  volatility      Float?   // Price volatility score (0-100)
-  volume          Int?     // Trading volume
+  price           String?
+  priceNum        Int?      @map("price_num")
+  priceUpdatedAt  DateTime? @map("price_updated_at")
 
   // Meta
-  lastPriceUpdate DateTime?
-  lastUpdated     DateTime @default(now())
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  addedAt         DateTime? @map("added_at")
+  updatedAt       DateTime? @map("updated_at")
+  createdAt       DateTime? @map("created_at")
 
-  @@unique([name, cardType, platform])
   @@index([name])
-  @@index([cardType])
-  @@index([platform])
-  @@index([currentPrice])
-  @@index([priceChange24h])
+  @@index([rating])
+  @@index([club])
+  @@index([league])
+  @@index([version])
   @@map("fut_players")
 }
 
