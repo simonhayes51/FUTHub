@@ -2,6 +2,8 @@ import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import jwt from 'jsonwebtoken';
+import { isMockMode, mockFeed } from '../lib/mockData.js';
 
 const router = Router();
 
@@ -48,6 +50,12 @@ function mapRiskLevel(dbRisk: string): "low" | "medium" | "high" {
 // Get feed (works for both authenticated and unauthenticated users)
 router.get('/feed', async (req: any, res) => {
   try {
+    if (isMockMode) {
+      const { type } = req.query;
+      const filtered = type ? mockFeed.filter((post) => post.type === type) : mockFeed;
+      return res.json(filtered);
+    }
+
     // Try to get user ID from token if available
     const token = req.headers.authorization?.replace('Bearer ', '');
     let userId: string | null = null;
@@ -185,6 +193,11 @@ router.get('/feed', async (req: any, res) => {
 // Get single post
 router.get('/:id', async (req, res) => {
   try {
+    if (isMockMode) {
+      const post = mockFeed.find((item) => item.id === req.params.id) || mockFeed[0];
+      return res.json(post);
+    }
+
     const post = await prisma.post.findUnique({
       where: { id: req.params.id },
       include: {
@@ -222,6 +235,13 @@ router.get('/:id', async (req, res) => {
 // Create post (traders only)
 router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.status(201).json({
+        id: `post-${Date.now()}`,
+        ...req.body,
+      });
+    }
+
     const userId = req.user!.id;
 
     // Check if user is a trader
@@ -291,6 +311,10 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 // Like post
 router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ liked: true });
+    }
+
     const postId = req.params.id;
     const userId = req.user!.id;
 
@@ -354,6 +378,23 @@ router.post('/:id/like', authenticate, async (req: AuthRequest, res) => {
 // Get comments for post
 router.get('/:id/comments', async (req, res) => {
   try {
+    if (isMockMode) {
+      return res.json([
+        {
+          id: 'comment-1',
+          content: 'Great call, thanks for the heads-up!',
+          createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          user: {
+            id: 'user-2',
+            username: 'MarketScout',
+            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
+            verified: false,
+          },
+          replies: [],
+        },
+      ]);
+    }
+
     const comments = await prisma.comment.findMany({
       where: {
         postId: req.params.id,
@@ -399,6 +440,21 @@ router.get('/:id/comments', async (req, res) => {
 // Create comment
 router.post('/:id/comments', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.status(201).json({
+        id: `comment-${Date.now()}`,
+        content: req.body.content,
+        createdAt: new Date().toISOString(),
+        user: {
+          id: mockFeed[0]?.id || 'demo-user',
+          username: 'DemoUser',
+          avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face',
+          verified: false,
+        },
+        replies: [],
+      });
+    }
+
     const postId = req.params.id;
     const userId = req.user!.id;
     const { content, parentId } = req.body;

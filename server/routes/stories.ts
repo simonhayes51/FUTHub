@@ -1,12 +1,18 @@
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
+import jwt from 'jsonwebtoken';
+import { isMockMode, mockStories } from '../lib/mockData.js';
 
 const router = Router();
 
 // Get stories (from subscribed traders or all if not authenticated)
 router.get('/', async (req, res) => {
   try {
+    if (isMockMode) {
+      return res.json(mockStories);
+    }
+
     // Try to get user ID from token if available
     const token = req.headers.authorization?.replace('Bearer ', '');
     let userId: string | null = null;

@@ -1,12 +1,24 @@
 import { Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { isMockMode, mockPortfolio } from '../lib/mockData.js';
 
 const router = Router();
 
 // Get user's portfolio
 router.get('/', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      const { status } = req.query;
+      const portfolio = status
+        ? mockPortfolio.portfolio.filter((item) => item.status === status)
+        : mockPortfolio.portfolio;
+      return res.json({
+        portfolio,
+        stats: mockPortfolio.stats,
+      });
+    }
+
     const userId = req.user!.id;
     const { status } = req.query;
 
@@ -68,6 +80,14 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 // Add card to portfolio
 router.post('/', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.status(201).json({
+        id: `port-${Date.now()}`,
+        ...req.body,
+        status: 'HOLDING',
+      });
+    }
+
     const userId = req.user!.id;
     const { cardId, quantity, buyPrice } = req.body;
 
@@ -95,6 +115,13 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
 // Update portfolio item
 router.patch('/:id', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({
+        id: req.params.id,
+        ...req.body,
+      });
+    }
+
     const userId = req.user!.id;
     const id = req.params.id;
     const { quantity, currentPrice, sellPrice, status } = req.body;
@@ -141,6 +168,10 @@ router.patch('/:id', authenticate, async (req: AuthRequest, res) => {
 // Delete portfolio item
 router.delete('/:id', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ message: 'Portfolio item deleted' });
+    }
+
     const userId = req.user!.id;
     const id = req.params.id;
 

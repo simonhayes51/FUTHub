@@ -1,12 +1,37 @@
 import { Router } from 'express';
 import { prisma } from '../lib/db.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
+import { isMockMode, mockFeed, mockTraders } from '../lib/mockData.js';
 
 const router = Router();
 
 // Get all traders
 router.get('/', async (req, res) => {
   try {
+    if (isMockMode) {
+      const { specialty, featured, search } = req.query;
+      let traders = [...mockTraders];
+
+      if (specialty) {
+        traders = traders.filter((trader) => trader.specialty === specialty);
+      }
+
+      if (featured === 'true') {
+        traders = traders.filter((trader) => trader.featured);
+      }
+
+      if (search) {
+        const query = (search as string).toLowerCase();
+        traders = traders.filter(
+          (trader) =>
+            trader.name.toLowerCase().includes(query) ||
+            trader.specialty.toLowerCase().includes(query)
+        );
+      }
+
+      return res.json(traders);
+    }
+
     const { specialty, featured, search } = req.query;
 
     const where: any = {};
@@ -59,6 +84,11 @@ router.get('/', async (req, res) => {
 // Get single trader
 router.get('/:id', async (req, res) => {
   try {
+    if (isMockMode) {
+      const trader = mockTraders.find((item) => item.id === req.params.id) || mockTraders[0];
+      return res.json(trader);
+    }
+
     const trader = await prisma.trader.findUnique({
       where: { id: req.params.id },
       include: {
@@ -95,6 +125,10 @@ router.get('/:id', async (req, res) => {
 // Subscribe to trader
 router.post('/:id/subscribe', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ status: 'ACTIVE', traderId: req.params.id, tier: req.body.tier || 'MONTHLY' });
+    }
+
     const traderId = req.params.id;
     const userId = req.user!.id;
     const { tier = 'MONTHLY' } = req.body;
@@ -174,6 +208,10 @@ router.post('/:id/subscribe', authenticate, async (req: AuthRequest, res) => {
 // Unsubscribe from trader
 router.delete('/:id/subscribe', authenticate, async (req: AuthRequest, res) => {
   try {
+    if (isMockMode) {
+      return res.json({ message: 'Unsubscribed successfully' });
+    }
+
     const traderId = req.params.id;
     const userId = req.user!.id;
 
@@ -224,6 +262,10 @@ router.delete('/:id/subscribe', authenticate, async (req: AuthRequest, res) => {
 // Get trader's posts
 router.get('/:id/posts', async (req, res) => {
   try {
+    if (isMockMode) {
+      return res.json(mockFeed);
+    }
+
     const traderId = req.params.id;
     const { limit = '10', offset = '0' } = req.query;
 

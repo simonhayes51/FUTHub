@@ -1,5 +1,4 @@
 import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarNavProps {
@@ -22,8 +21,9 @@ const toolItems = [
 ];
 
 const SidebarNav = ({ activeTab, onTabChange }: SidebarNavProps) => {
-  const { user, logout } = useAuth();
-
+  const { user, logout, isAuthenticated } = useAuth();
+  const displayName = user?.username || "Guest";
+  const displayHandle = user?.username ? `@${user.username}` : "Sign in to personalize";
   return (
     <div className="flex flex-col h-full">
       {/* Logo */}
@@ -87,15 +87,16 @@ const SidebarNav = ({ activeTab, onTabChange }: SidebarNavProps) => {
       {/* Bottom Section */}
       <div className="mt-auto px-2 pb-4 space-y-1">
         <button
-          onClick={() => alert("Settings coming soon!")}
+          onClick={() => onTabChange("profile")}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 hover:text-foreground transition-all"
         >
           <Settings className="w-4 h-4" />
           <span className="text-sm">Settings</span>
         </button>
         <button
-          onClick={logout}
+          onClick={() => logout()}
           className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-muted-foreground hover:bg-secondary/50 hover:text-destructive transition-all"
+          disabled={!isAuthenticated}
         >
           <LogOut className="w-4 h-4" />
           <span className="text-sm">Log Out</span>
@@ -107,12 +108,12 @@ const SidebarNav = ({ activeTab, onTabChange }: SidebarNavProps) => {
         <div className="flex items-center gap-3">
           <img
             src={user?.avatar || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200&h=200&fit=crop&crop=face"}
-            alt="Your profile"
+            alt={displayName}
             className="w-10 h-10 rounded-full object-cover border-2 border-border"
           />
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-foreground truncate">{user?.username || "Guest"}</p>
-            <p className="text-xs text-muted-foreground">@{user?.username?.toLowerCase() || "guest"}</p>
+            <p className="font-medium text-foreground truncate">{displayName}</p>
+            <p className="text-xs text-muted-foreground">{displayHandle}</p>
           </div>
         </div>
       </div>

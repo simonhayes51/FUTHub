@@ -1,4 +1,5 @@
 import TraderCard from "./TraderCard";
+import { Link } from "react-router-dom";
 import { useTraders } from "@/hooks/useTraders";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -51,12 +52,12 @@ const FeaturedTraders = () => {
         </div>
 
         <div className="text-center mt-10">
-          <a
-            href="#"
+          <Link
+            to="/feed?tab=discover"
             className="text-primary hover:text-primary/80 font-semibold transition-colors inline-flex items-center gap-2"
           >
             View All 500+ Traders →
-          </a>
+          </Link>
         </div>
       </div>
     </section>

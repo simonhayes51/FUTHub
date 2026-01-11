@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Zap, Shield, TrendingUp, Users } from "lucide-react";
+import logo from "@/assets/transfer-traders-logo.svg";
 
 const HeroSection = () => {
   return (
@@ -13,6 +14,13 @@ const HeroSection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
+          <div className="flex justify-center mb-6">
+            <img
+              src={logo}
+              alt="Transfer Traders"
+              className="w-40 md:w-48 drop-shadow-[0_0_30px_rgba(98,231,255,0.25)]"
+            />
+          </div>
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-card/50 border border-border mb-8 backdrop-blur-sm">
             <span className="w-2 h-2 rounded-full bg-success animate-pulse" />

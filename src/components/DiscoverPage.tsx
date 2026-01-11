@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, Filter, TrendingUp, Shield, Users, Star, SlidersHorizontal, Loader2 } from "lucide-react";
+import { Search, TrendingUp, Shield, Users, Star, SlidersHorizontal, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTraders, useSubscribe } from "@/hooks/useTraders";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
+import { AuthModal } from "@/components/AuthModal";
 
 const categories = ["All", "Quick Flips", "SBC", "Icons", "Meta", "Budget"];
 const sortOptions = ["Popular", "Win Rate", "ROI", "Price: Low", "Price: High"];
@@ -14,9 +15,17 @@ const DiscoverPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedSort, setSelectedSort] = useState("Popular");
   const [showFilters, setShowFilters] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const { isAuthenticated } = useAuth();
   const subscribeMutation = useSubscribe();
+
+  const formatPercent = (value: number | string) => {
+    if (typeof value === "string") {
+      return value.includes("%") ? value : `${value}%`;
+    }
+    return `${value}%`;
+  };
 
   // Fetch traders from API with search filter
   const { data: traders = [], isLoading, error } = useTraders({
@@ -26,7 +35,7 @@ const DiscoverPage = () => {
 
   const handleSubscribe = (traderId: string) => {
     if (!isAuthenticated) {
-      // TODO: Show auth modal
+      setShowAuthModal(true);
       return;
     }
     subscribeMutation.mutate({ traderId, tier: 'MONTHLY' });
@@ -156,7 +165,7 @@ const DiscoverPage = () => {
                   <p className="text-xs text-muted-foreground">Win Rate</p>
                 </div>
                 <div className="text-center p-2 bg-background/50 rounded-lg">
-                  <p className="font-bold text-success">{trader.avgROI}</p>
+                  <p className="font-bold text-success">{formatPercent(trader.avgROI)}</p>
                   <p className="text-xs text-muted-foreground">Avg ROI</p>
                 </div>
                 <div className="text-center p-2 bg-background/50 rounded-lg">
@@ -223,7 +232,7 @@ const DiscoverPage = () => {
                 <div className="flex items-center gap-3 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <TrendingUp className="w-3 h-3 text-success" />
-                    {(trader as any).avgROI}%
+                    {formatPercent((trader as any).avgROI)}
                   </span>
                   <span className="flex items-center gap-1">
                     <Users className="w-3 h-3" />
@@ -243,6 +252,12 @@ const DiscoverPage = () => {
           ))}
         </div>
       </div>
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        defaultMode="login"
+      />
     </div>
   );
 };

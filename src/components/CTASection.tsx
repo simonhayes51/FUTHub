@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 import { Zap, Check } from "lucide-react";
 
 const benefits = [
@@ -10,7 +11,7 @@ const benefits = [
 
 const CTASection = () => {
   return (
-    <section className="py-20 bg-background relative overflow-hidden">
+    <section id="pricing" className="py-20 bg-background relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/5 rounded-full blur-3xl" />
@@ -44,13 +45,17 @@ const CTASection = () => {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button variant="hero" size="xl" className="min-w-[200px]">
-              <Zap className="w-5 h-5" />
-              Start Free Trial
-            </Button>
-            <Button variant="glass" size="xl" className="min-w-[200px]">
-              View All Plans
-            </Button>
+            <Link to="/feed?tab=discover">
+              <Button variant="hero" size="xl" className="min-w-[200px]">
+                <Zap className="w-5 h-5" />
+                Start Free Trial
+              </Button>
+            </Link>
+            <Link to="/feed?tab=discover">
+              <Button variant="glass" size="xl" className="min-w-[200px]">
+                View All Plans
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
