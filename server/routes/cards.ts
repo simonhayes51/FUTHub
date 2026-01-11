@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { prisma } from '../lib/db.js';
+import { playersDb } from '../lib/playersDb.js';
 import { isMockMode, mockCards, mockPriceAlerts } from '../lib/mockData.js';
 
 const router = Router();
@@ -36,7 +37,7 @@ router.get('/search', async (req, res) => {
       ];
     }
 
-    const cards = await prisma.card.findMany({
+    const cards = await playersDb.card.findMany({
       where,
       orderBy: {
         rating: 'desc',
@@ -82,7 +83,7 @@ router.get('/trending', async (req, res) => {
 
     const cards = await Promise.all(
       recentPosts.map(async (post) => {
-        return await prisma.card.findFirst({
+        return await playersDb.card.findFirst({
           where: {
             name: post.playerName!,
             cardType: post.cardType || undefined,
@@ -154,7 +155,7 @@ router.get('/:id', async (req, res) => {
       return res.json(card);
     }
 
-    const card = await prisma.card.findUnique({
+    const card = await playersDb.card.findUnique({
       where: { id: req.params.id },
     });
 
@@ -181,7 +182,7 @@ router.get('/:id/history', async (req, res) => {
       });
     }
 
-    const card = await prisma.card.findUnique({
+    const card = await playersDb.card.findUnique({
       where: { id: req.params.id },
       select: {
         id: true,
