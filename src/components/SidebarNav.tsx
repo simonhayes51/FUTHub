@@ -1,5 +1,6 @@
 import { Home, Compass, Bell, Bookmark, Settings, TrendingUp, Search, Calculator, Users, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import logoIcon from "@/assets/transfer-traders-icon.svg";
 
 interface SidebarNavProps {
   activeTab: string;
@@ -29,12 +30,11 @@ const SidebarNav = ({ activeTab, onTabChange }: SidebarNavProps) => {
       {/* Logo */}
       <div className="p-4 mb-2">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center glow-primary">
-            <TrendingUp className="w-5 h-5 text-primary-foreground" />
+          <img src={logoIcon} alt="Transfer Traders" className="h-10 w-10" />
+          <div className="flex flex-col leading-tight">
+            <span className="font-display text-xs text-gradient-primary">TRANSFER</span>
+            <span className="font-display text-xs text-gradient-purple">TRADERS</span>
           </div>
-          <span className="font-display font-bold text-xl tracking-wider">
-            FC<span className="text-primary">HUB</span>
-          </span>
         </div>
       </div>
 

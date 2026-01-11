@@ -21,7 +21,7 @@
     <path d="M70 36C70 27.163 77.1634 20 86 20H220C229.389 20 237 27.6112 237 37C237 46.3888 229.389 54 220 54H148C143.582 54 140 57.582 140 62V130C140 141.046 131.046 150 120 150H92C81.5066 150 73 141.493 73 131V70C73 61.1634 77.1634 54 86 54H98C103.523 54 108 49.5228 108 44V36C108 27.1634 100.837 20 92 20H70Z" fill="url(#logoGradient)"/>
     <path d="M180 84C180 75.1634 187.163 68 196 68H250C259.389 68 267 75.6112 267 85C267 94.3888 259.389 102 250 102H214C209.582 102 206 105.582 206 110V170C206 181.046 197.046 190 186 190H158C147.507 190 139 181.493 139 171V118C139 109.163 146.163 102 155 102H168C173.523 102 178 97.5228 178 92V84Z" fill="url(#logoGradient)" opacity="0.95"/>
   </g>
-  <text x="20" y="232" fill="url(#textGradient)" font-family="Orbitron, Inter, sans-serif" font-size="44" font-weight="700" letter-spacing="1">
+  <text x="20" y="232" fill="url(#textGradient)" font-family="Inter, sans-serif" font-size="44" font-weight="800" letter-spacing="-1">
     Transfer Traders
   </text>
 </svg>

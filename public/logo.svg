@@ -1,0 +1,29 @@
+<svg width="600" height="200" viewBox="0 0 600 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- TT Logo Symbol -->
+  <defs>
+    <linearGradient id="gradientCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4DD9FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#00C4FF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradientPurple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#D946EF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9247EB;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="gradientBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00C4FF;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0084FF;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- TT Symbol - Left T (Cyan gradient) -->
+  <path d="M 120 40 L 180 40 L 180 60 L 160 60 L 160 130 L 140 130 L 140 60 L 120 60 Z" fill="url(#gradientCyan)" transform="rotate(-15 150 85)"/>
+
+  <!-- TT Symbol - Right T (Purple gradient) -->
+  <path d="M 160 50 L 220 50 L 220 70 L 200 70 L 200 140 L 180 140 L 180 70 L 160 70 Z" fill="url(#gradientPurple)" transform="rotate(15 190 95)"/>
+
+  <!-- TRANSFER text -->
+  <text x="250" y="90" font-family="'Inter', sans-serif" font-size="48" font-weight="800" letter-spacing="4" fill="url(#gradientBlue)">TRANSFER</text>
+
+  <!-- TRADERS text -->
+  <text x="250" y="140" font-family="'Inter', sans-serif" font-size="48" font-weight="800" letter-spacing="4" fill="url(#gradientPurple)">TRADERS</text>
+</svg>
