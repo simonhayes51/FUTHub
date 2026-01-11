@@ -15,6 +15,8 @@ import UserDashboard from "@/components/UserDashboard";
 import MobileNav from "@/components/MobileNav";
 import CreatePostModal from "@/components/CreatePostModal";
 import ChatPanel from "@/components/ChatPanel";
+import TradesPage from "@/pages/TradesPage";
+import WatchlistPage from "@/pages/WatchlistPage";
 import { Filter, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeed } from "@/hooks/useFeed";
@@ -73,6 +75,8 @@ const FeedPage = () => {
       "discover",
       "messages",
       "notifications",
+      "trades",
+      "watchlist",
       "prices",
       "profile",
       "trader-profile",
@@ -102,6 +106,10 @@ const FeedPage = () => {
         return <ChatPanel />;
       case "notifications":
         return <NotificationsPanel />;
+      case "trades":
+        return <TradesPage />;
+      case "watchlist":
+        return <WatchlistPage />;
       case "prices":
         return <PriceChecker />;
       case "profile":

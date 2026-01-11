@@ -301,6 +301,163 @@ class ApiClient {
     });
   }
 
+  // Trades
+  async getTrades(params?: { limit?: number; offset?: number; tag?: string; platform?: string; status?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }) {
+    const query = new URLSearchParams();
+    if (params?.limit) query.append('limit', params.limit.toString());
+    if (params?.offset) query.append('offset', params.offset.toString());
+    if (params?.tag) query.append('tag', params.tag);
+    if (params?.platform) query.append('platform', params.platform);
+    if (params?.status) query.append('status', params.status);
+    if (params?.sortBy) query.append('sortBy', params.sortBy);
+    if (params?.sortOrder) query.append('sortOrder', params.sortOrder);
+
+    return this.request<{ trades: any[]; total: number; limit: number; offset: number }>(`/trades?${query.toString()}`);
+  }
+
+  async getTradeAnalytics() {
+    return this.request<{
+      totalProfit: number;
+      totalTrades: number;
+      activeTrades: number;
+      winRate: number;
+      avgROI: number;
+      sharpeRatio: number;
+      maxDrawdown: number;
+      bestTrade: any;
+      popularPlayers: any[];
+    }>('/trades/analytics');
+  }
+
+  async createTrade(data: any) {
+    return this.request<any>('/trades', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async createBulkTrades(trades: any[]) {
+    return this.request<{ count: number; trades: any[] }>('/trades/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ trades }),
+    });
+  }
+
+  async updateTrade(id: string, data: any) {
+    return this.request<any>(`/trades/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteTrade(id: string) {
+    return this.request<{ success: boolean }>(`/trades/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async exportTrades() {
+    const url = `${API_URL}/trades/export`;
+    const config: RequestInit = {
+      headers: this.getHeaders(),
+    };
+    const response = await fetch(url, config);
+    const blob = await response.blob();
+    return blob;
+  }
+
+  async importTrades(csvData: string) {
+    return this.request<{ count: number; trades: any[] }>('/trades/import', {
+      method: 'POST',
+      body: JSON.stringify({ csvData }),
+    });
+  }
+
+  // Watchlists
+  async getWatchlists() {
+    return this.request<any[]>('/watchlists');
+  }
+
+  async getWatchlist(id: string) {
+    return this.request<any>(`/watchlists/${id}`);
+  }
+
+  async createWatchlist(data: { name: string; platform?: string }) {
+    return this.request<any>('/watchlists', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWatchlist(id: string, data: { name?: string; platform?: string }) {
+    return this.request<any>(`/watchlists/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWatchlist(id: string) {
+    return this.request<{ success: boolean }>(`/watchlists/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async addWatchlistItem(watchlistId: string, data: any) {
+    return this.request<any>(`/watchlists/${watchlistId}/items`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async updateWatchlistItem(watchlistId: string, itemId: string, data: any) {
+    return this.request<any>(`/watchlists/${watchlistId}/items/${itemId}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWatchlistItem(watchlistId: string, itemId: string) {
+    return this.request<{ success: boolean }>(`/watchlists/${watchlistId}/items/${itemId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async refreshWatchlist(id: string) {
+    return this.request<{ success: boolean; message: string }>(`/watchlists/${id}/refresh`, {
+      method: 'POST',
+    });
+  }
+
+  async createWatchlistAlert(watchlistId: string, data: any) {
+    return this.request<any>(`/watchlists/${watchlistId}/alerts`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteWatchlistAlert(watchlistId: string, alertId: string) {
+    return this.request<{ success: boolean }>(`/watchlists/${watchlistId}/alerts/${alertId}`, {
+      method: 'DELETE',
+    });
+  }
+
+  async getWatchlistUsage() {
+    return this.request<{ used: number; limit: number; remaining: number; percentage: number }>('/watchlists/usage/stats');
+  }
+
+  // FUT.GG Price API
+  async searchPlayers(query: string, platform: string = 'ps') {
+    return this.request<any[]>(`/cards/search?q=${encodeURIComponent(query)}&platform=${platform}`);
+  }
+
+  async getPlayerPrice(cardId: number, platform: string = 'ps') {
+    return this.request<{ price: number; updated: string }>(`/cards/${cardId}/price?platform=${platform}`);
+  }
+
+  async getPlayerPriceHistory(cardId: number, timeframe: 'today' | '3d' | 'week' | 'month' | 'year' = 'week') {
+    return this.request<{ history: any[] }>(`/cards/${cardId}/history?timeframe=${timeframe}`);
+  }
+
   // Health check
   async healthCheck() {
     return this.request<{ status: string }>('/health');
