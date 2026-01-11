@@ -23,11 +23,9 @@ router.get('/search', async (req, res) => {
       return res.json(filtered.slice(0, parseInt(limit as string)));
     }
 
-    const { q, platform = 'PS', limit = '20' } = req.query;
+    const { q, limit = '20' } = req.query;
 
-    // Convert platform to uppercase to match Platform enum (PS, XBOX, PC)
-    const platformUpper = (platform as string).toUpperCase();
-    const where: any = { platform: platformUpper };
+    const where: any = {};
 
     if (q) {
       where.OR = [
@@ -79,15 +77,12 @@ router.get('/trending', async (req, res) => {
       take: parseInt(limit as string),
     });
 
-    const platformUpper = (platform as string).toUpperCase();
-
     const cards = await Promise.all(
       recentPosts.map(async (post) => {
         return await playersDb.card.findFirst({
           where: {
             name: post.playerName!,
-            cardType: post.cardType || undefined,
-            platform: platformUpper as any,
+            version: post.cardType || undefined,
           },
         });
       })
