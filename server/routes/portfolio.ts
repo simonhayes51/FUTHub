@@ -29,9 +29,6 @@ router.get('/', authenticate, async (req: AuthRequest, res) => {
 
     const portfolio = await prisma.portfolio.findMany({
       where,
-      include: {
-        card: true,
-      },
       orderBy: {
         purchasedAt: 'desc',
       },
@@ -100,9 +97,6 @@ router.post('/', authenticate, async (req: AuthRequest, res) => {
         currentPrice: buyPrice,
         status: 'HOLDING',
       },
-      include: {
-        card: true,
-      },
     });
 
     res.status(201).json(portfolioItem);
@@ -153,9 +147,6 @@ router.patch('/:id', authenticate, async (req: AuthRequest, res) => {
     const updated = await prisma.portfolio.update({
       where: { id },
       data,
-      include: {
-        card: true,
-      },
     });
 
     res.json(updated);
