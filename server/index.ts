@@ -13,6 +13,8 @@ import notificationsRoutes from './routes/notifications.js';
 import cardsRoutes from './routes/cards.js';
 import trendingRoutes from './routes/trending.js';
 import storiesRoutes from './routes/stories.js';
+import tradesRoutes from './routes/trades.js';
+import watchlistsRoutes from './routes/watchlists.js';
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +42,8 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/cards', cardsRoutes);
 app.use('/api/trending', trendingRoutes);
 app.use('/api/stories', storiesRoutes);
+app.use('/api/trades', tradesRoutes);
+app.use('/api/watchlists', watchlistsRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -45,6 +45,9 @@ model User {
   achievements        UserAchievement[]
   sentMessages        Message[]       @relation("SentMessages")
   receivedMessages    Message[]       @relation("ReceivedMessages")
+  trades              Trade[]
+  watchlists          Watchlist[]
+  settings            UserSettings?
 
   @@index([email])
   @@index([username])
@@ -527,4 +530,196 @@ model Message {
   @@index([senderId])
   @@index([receiverId])
   @@index([createdAt])
+}
+
+// ============================================
+// TRADE MANAGEMENT
+// ============================================
+
+model Trade {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Player/Card Info
+  playerName      String
+  cardVersion     String?  // "Gold", "TOTW", "Icon", etc.
+  rating          Int?
+  platform        Platform @default(PS)
+
+  // Trade Details
+  buyPrice        Float
+  sellPrice       Float?
+  quantity        Int      @default(1)
+
+  // Calculations
+  profit          Float?   // sellPrice - buyPrice - tax
+  eaTax           Float?   // 5% EA tax
+  roi             Float?   // (profit / buyPrice) * 100
+
+  // Tags & Notes
+  tag             String?  // "Snipe", "Investment", "Flip", "SBC", etc.
+  notes           String?
+
+  // Status
+  status          TradeStatus @default(ACTIVE)
+
+  // Timestamps
+  tradeDate       DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId])
+  @@index([tradeDate])
+  @@index([status])
+  @@index([tag])
+}
+
+// ============================================
+// WATCHLIST SYSTEM
+// ============================================
+
+model Watchlist {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name            String
+  platform        Platform        @default(PS)
+
+  // Metadata
+  lastRefreshed   DateTime?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  items           WatchlistItem[]
+  alerts          WatchlistAlert[]
+
+  @@index([userId])
+}
+
+model WatchlistItem {
+  id              String    @id @default(cuid())
+  watchlistId     String
+  watchlist       Watchlist @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  // Player Info
+  playerName      String
+  cardId          Int?      // FUT.GG card ID
+  rating          Int?
+
+  // Price Tracking
+  targetPrice     Float?
+  buyPrice        Float?
+  currentPrice    Float?
+  priceChange     Float?    // Percentage change
+
+  // Notes
+  notes           String?
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([watchlistId])
+  @@index([playerName])
+}
+
+enum WatchlistAlertType {
+  PRICE_DROP
+  PRICE_RISE
+  VOLUME_SPIKE
+  TARGET_REACHED
+}
+
+model WatchlistAlert {
+  id              String              @id @default(cuid())
+  watchlistId     String
+  watchlist       Watchlist           @relation(fields: [watchlistId], references: [id], onDelete: Cascade)
+
+  playerName      String
+  alertType       WatchlistAlertType
+
+  // Trigger Conditions
+  targetPrice     Float?
+  priceDropPercent Float?
+  priceRisePercent Float?
+
+  // Status
+  active          Boolean   @default(true)
+  triggered       Boolean   @default(false)
+  lastTriggered   DateTime?
+
+  // Discord Notifications
+  discordNotify   Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([watchlistId])
+  @@index([active])
+}
+
+// ============================================
+// USER SETTINGS
+// ============================================
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Trading Preferences
+  defaultPlatform       Platform @default(PS)
+  customTags            Json?    // Array of custom trade tags
+  includeTaxInProfit    Boolean  @default(true)
+
+  // Portfolio
+  startingBalance       Float?
+
+  // Display
+  currencyFormat        String   @default("GBP")
+  dateFormat            String   @default("DD/MM/YYYY")
+  theme                 String   @default("dark")
+  timezone              String   @default("Europe/London")
+
+  // Notifications
+  priceAlertNotifications Boolean @default(true)
+  tradeNotifications      Boolean @default(true)
+  discordNotifications    Boolean @default(false)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ============================================
+// PORTFOLIO SNAPSHOTS
+// ============================================
+
+model PortfolioSnapshot {
+  id              String   @id @default(cuid())
+  userId          String
+
+  snapshotDate    DateTime
+  totalProfit     Float
+  totalTrades     Int
+  winRate         Float
+  roi             Float
+  uniquePlayers   Int
+
+  // Advanced Metrics
+  sharpeRatio     Float?
+  maxDrawdown     Float?
+
+  // Aggregated Data
+  metrics         Json?    // Additional metrics as JSON
+
+  createdAt       DateTime @default(now())
+
+  @@unique([userId, snapshotDate])
+  @@index([userId])
+  @@index([snapshotDate])
 }
