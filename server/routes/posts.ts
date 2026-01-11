@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
 import { authenticate, AuthRequest } from '../middleware/auth.js';
 
@@ -54,7 +55,7 @@ router.get('/feed', async (req: any, res) => {
 
     if (token) {
       try {
-        const decoded = require('jsonwebtoken').verify(
+        const decoded = jwt.verify(
           token,
           process.env.JWT_SECRET || '1ed7158e5f237cd10c501b0dd984cf14'
         ) as { id: string };

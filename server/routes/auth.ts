@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import { prisma } from '../lib/db.js';
 import { generateToken } from '../middleware/auth.js';
 
@@ -125,7 +126,7 @@ router.get('/me', async (req, res) => {
       return res.status(401).json({ error: 'Not authenticated' });
     }
 
-    const decoded = require('jsonwebtoken').verify(
+    const decoded = jwt.verify(
       token,
       process.env.JWT_SECRET || '1ed7158e5f237cd10c501b0dd984cf14'
     ) as { id: string };
