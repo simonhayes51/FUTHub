@@ -14,6 +14,7 @@ import DiscoverPage from "@/components/DiscoverPage";
 import UserDashboard from "@/components/UserDashboard";
 import MobileNav from "@/components/MobileNav";
 import CreatePostModal from "@/components/CreatePostModal";
+import ChatPanel from "@/components/ChatPanel";
 import { Filter, Sparkles, Plus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useFeed } from "@/hooks/useFeed";
@@ -70,6 +71,7 @@ const FeedPage = () => {
     const allowedTabs = new Set([
       "feed",
       "discover",
+      "messages",
       "notifications",
       "prices",
       "profile",
@@ -96,6 +98,8 @@ const FeedPage = () => {
     switch (activeTab) {
       case "discover":
         return <DiscoverPage />;
+      case "messages":
+        return <ChatPanel />;
       case "notifications":
         return <NotificationsPanel />;
       case "prices":
@@ -237,20 +241,25 @@ const FeedPage = () => {
                 {renderMainContent()}
               </div>
 
-              {/* Right Column - Only show on feed */}
-              {activeTab === "feed" && (
+              {/* Right Column - Show on most tabs */}
+              {!["trader-profile"].includes(activeTab) && (
                 <div className="hidden xl:block w-80 space-y-4">
-                  {/* Portfolio Widget */}
-                  <PortfolioWidget />
+                  {/* Show different widgets based on active tab */}
+                  {activeTab === "feed" && (
+                    <>
+                      {/* Portfolio Widget */}
+                      <PortfolioWidget />
 
-                  {/* Subscribed Traders */}
-                  <SubscribedTraders
-                    traders={subscribedTraders}
-                    activeTrader={activeTrader}
-                    onTraderSelect={setActiveTrader}
-                  />
+                      {/* Subscribed Traders */}
+                      <SubscribedTraders
+                        traders={subscribedTraders}
+                        activeTrader={activeTrader}
+                        onTraderSelect={setActiveTrader}
+                      />
+                    </>
+                  )}
 
-                  {/* Right Sidebar Content */}
+                  {/* Right Sidebar Content - Always visible */}
                   <RightSidebar />
                 </div>
               )}
