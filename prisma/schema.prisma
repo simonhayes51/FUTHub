@@ -714,3 +714,24 @@ model PortfolioSnapshot {
   @@index([userId])
   @@index([snapshotDate])
 }
+
+// ============================================
+// PRICE SNAPSHOTS (Live market history)
+// ============================================
+// Periodic snapshots of live player prices (sourced from the fut_players table)
+// so the Market Intelligence engine can compute real 24h / 7d movement and serve
+// price-history charts. Populated by the snapshot service; see server/lib/priceHistory.ts.
+
+model PriceSnapshot {
+  id          String   @id @default(cuid())
+  cardKey     String   // Stable identity: cardId, else name|version
+  cardId      Int?
+  name        String
+  rating      Int
+  price       Int
+  capturedAt  DateTime @default(now())
+
+  @@index([cardKey, capturedAt])
+  @@index([capturedAt])
+  @@map("price_snapshots")
+}

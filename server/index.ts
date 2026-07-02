@@ -15,6 +15,15 @@ import trendingRoutes from './routes/trending.js';
 import storiesRoutes from './routes/stories.js';
 import tradesRoutes from './routes/trades.js';
 import watchlistsRoutes from './routes/watchlists.js';
+import marketRoutes from './routes/market.js';
+import sbcRoutes from './routes/sbc.js';
+import packsRoutes from './routes/packs.js';
+import evolutionsRoutes from './routes/evolutions.js';
+import objectivesRoutes from './routes/objectives.js';
+import squadsRoutes from './routes/squads.js';
+import coachRoutes from './routes/coach.js';
+import newsRoutes from './routes/news.js';
+import dashboardRoutes from './routes/dashboard.js';
 import debugRoutes from './routes/debug.js';
 
 // Load environment variables
@@ -45,6 +54,15 @@ app.use('/api/trending', trendingRoutes);
 app.use('/api/stories', storiesRoutes);
 app.use('/api/trades', tradesRoutes);
 app.use('/api/watchlists', watchlistsRoutes);
+app.use('/api/market', marketRoutes);
+app.use('/api/sbc', sbcRoutes);
+app.use('/api/packs', packsRoutes);
+app.use('/api/evolutions', evolutionsRoutes);
+app.use('/api/objectives', objectivesRoutes);
+app.use('/api/squads', squadsRoutes);
+app.use('/api/coach', coachRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/debug', debugRoutes);
 
 // Health check
@@ -77,11 +95,31 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   });
 });
 
+// Live price-history scheduler: capture a snapshot on boot and hourly so the
+// Market Intelligence engine has real 24h/7d movement. Disable with
+// ENABLE_PRICE_SNAPSHOTS=false. No-ops in mock mode.
+function startPriceSnapshotScheduler() {
+  if (process.env.ENABLE_PRICE_SNAPSHOTS === 'false') return;
+  const run = async () => {
+    try {
+      const { captureSnapshots } = await import('./lib/priceHistory.js');
+      const result = await captureSnapshots();
+      if (!result.skipped) console.log(`📸 Price snapshot captured: ${result.captured} cards`);
+    } catch (error) {
+      console.error('Price snapshot scheduler error:', error);
+    }
+  };
+  // First run shortly after boot, then every hour.
+  setTimeout(run, 30_000);
+  setInterval(run, 60 * 60 * 1000);
+}
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📡 API available at http://localhost:${PORT}/api`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  startPriceSnapshotScheduler();
 
   if (process.env.NODE_ENV !== 'production') {
     console.log(`\n💡 Frontend dev server: http://localhost:8080`);

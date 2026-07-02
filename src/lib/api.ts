@@ -272,6 +272,94 @@ class ApiClient {
     }>(`/trending/movers?limit=${limit}`);
   }
 
+  // Market Intelligence (FC Edge)
+  async getMarketOverview() {
+    return this.request<import('./marketTypes').MarketOverviewResponse>('/market/overview');
+  }
+
+  async getMarketScanner(category = 'best-investments', limit = 20) {
+    return this.request<import('./marketTypes').ScannerResponse>(
+      `/market/scanner?category=${encodeURIComponent(category)}&limit=${limit}`
+    );
+  }
+
+  async getScannerCategories() {
+    return this.request<{ categories: import('./marketTypes').ScannerCategoryMeta[] }>(
+      '/market/categories'
+    );
+  }
+
+  async getMarketIntelligence(id: string) {
+    return this.request<import('./marketTypes').IntelligenceResponse>(
+      `/market/intelligence/${encodeURIComponent(id)}`
+    );
+  }
+
+  async getMarketHistory(id: string, hours = 24 * 30) {
+    return this.request<{
+      id: string;
+      name: string;
+      current: number;
+      dataQuality: 'live' | 'estimated';
+      points: number;
+      history: Array<{ time: string; price: number }>;
+    }>(`/market/history/${encodeURIComponent(id)}?hours=${hours}`);
+  }
+
+  // FC Edge — Dashboard, SBC, Packs, Evolutions, Objectives, Squads, Coach, News
+  async getDashboard(name?: string) {
+    const q = name ? `?name=${encodeURIComponent(name)}` : '';
+    return this.request<import('./fcTypes').DashboardResponse>(`/dashboard${q}`);
+  }
+
+  async getSbcs() {
+    return this.request<{ count: number; items: import('./fcTypes').SbcListItem[] }>('/sbc');
+  }
+  async getSbc(id: string) {
+    return this.request<import('./fcTypes').SbcDetail>(`/sbc/${encodeURIComponent(id)}`);
+  }
+
+  async getPacks() {
+    return this.request<{ count: number; items: import('./fcTypes').PackItem[] }>('/packs');
+  }
+  async simulatePack(id: string, count = 1, seed?: string) {
+    return this.request<import('./fcTypes').PackSimResult>(`/packs/${encodeURIComponent(id)}/simulate`, {
+      method: 'POST',
+      body: JSON.stringify({ count, seed }),
+    });
+  }
+
+  async getEvolutions() {
+    return this.request<{ count: number; items: import('./fcTypes').EvolutionItem[] }>('/evolutions');
+  }
+  async getEvolution(id: string) {
+    return this.request<import('./fcTypes').EvolutionItem>(`/evolutions/${encodeURIComponent(id)}`);
+  }
+
+  async getObjectives() {
+    return this.request<import('./fcTypes').ObjectivesResponse>('/objectives');
+  }
+  async getRoadmap() {
+    return this.request<import('./fcTypes').RoadmapResponse>('/objectives/roadmap');
+  }
+
+  async getSquads(budget?: string) {
+    const q = budget ? `?budget=${encodeURIComponent(budget)}` : '';
+    return this.request<{ count: number; items: import('./fcTypes').SquadItem[] }>(`/squads${q}`);
+  }
+
+  async askCoach(message: string) {
+    return this.request<import('./fcTypes').CoachResponse>('/coach', {
+      method: 'POST',
+      body: JSON.stringify({ message }),
+    });
+  }
+
+  async getNews(category?: string) {
+    const q = category ? `?category=${encodeURIComponent(category)}` : '';
+    return this.request<import('./fcTypes').NewsResponse>(`/news${q}`);
+  }
+
   // Stories
   async getStories() {
     return this.request<any[]>('/stories');
