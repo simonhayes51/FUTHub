@@ -16,6 +16,14 @@ import storiesRoutes from './routes/stories.js';
 import tradesRoutes from './routes/trades.js';
 import watchlistsRoutes from './routes/watchlists.js';
 import marketRoutes from './routes/market.js';
+import sbcRoutes from './routes/sbc.js';
+import packsRoutes from './routes/packs.js';
+import evolutionsRoutes from './routes/evolutions.js';
+import objectivesRoutes from './routes/objectives.js';
+import squadsRoutes from './routes/squads.js';
+import coachRoutes from './routes/coach.js';
+import newsRoutes from './routes/news.js';
+import dashboardRoutes from './routes/dashboard.js';
 import debugRoutes from './routes/debug.js';
 
 // Load environment variables
@@ -47,6 +55,14 @@ app.use('/api/stories', storiesRoutes);
 app.use('/api/trades', tradesRoutes);
 app.use('/api/watchlists', watchlistsRoutes);
 app.use('/api/market', marketRoutes);
+app.use('/api/sbc', sbcRoutes);
+app.use('/api/packs', packsRoutes);
+app.use('/api/evolutions', evolutionsRoutes);
+app.use('/api/objectives', objectivesRoutes);
+app.use('/api/squads', squadsRoutes);
+app.use('/api/coach', coachRoutes);
+app.use('/api/news', newsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/debug', debugRoutes);
 
 // Health check

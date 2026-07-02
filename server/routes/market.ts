@@ -1,11 +1,11 @@
 import { Router, Request, Response } from 'express';
 import { playersDb } from '../lib/playersDb.js';
 import { isMockMode, mockCards } from '../lib/mockData.js';
+import { getScoredPool } from '../lib/cardPool.js';
 import {
   scoreCard,
   rankForCategory,
   marketOverview,
-  normalizeCard,
   SCANNER_CATEGORIES,
   type MarketIntelligence,
   type ScannerCategory,
@@ -14,45 +14,7 @@ import {
 
 const router = Router();
 
-// Simple in-memory cache for the scored candidate pool (5 min TTL).
-const CACHE_TTL = 5 * 60 * 1000;
-let poolCache: { data: MarketIntelligence[]; timestamp: number } | null = null;
-
 const VALID_CATEGORIES = new Set(SCANNER_CATEGORIES.map((c) => c.id));
-
-/**
- * Load a candidate pool of cards from the live players table (or mock data),
- * score every card, and cache the result. The scanner and overview endpoints
- * all read from this scored pool so a single DB pass powers the dashboard.
- */
-async function getScoredPool(): Promise<MarketIntelligence[]> {
-  if (poolCache && Date.now() - poolCache.timestamp < CACHE_TTL) {
-    return poolCache.data;
-  }
-
-  let raw: RawCard[];
-  if (isMockMode) {
-    raw = mockCards as RawCard[];
-  } else {
-    try {
-      raw = (await playersDb.card.findMany({
-        where: { rating: { gte: 75 } },
-        orderBy: [{ rating: 'desc' }],
-        take: 400,
-      })) as unknown as RawCard[];
-    } catch (error) {
-      console.error('Market pool query failed, using mock data:', error);
-      raw = mockCards as RawCard[];
-    }
-  }
-
-  const scored = raw
-    .map((card) => scoreCard(card))
-    .filter((m): m is MarketIntelligence => m !== null);
-
-  poolCache = { data: scored, timestamp: Date.now() };
-  return scored;
-}
 
 /** GET /api/market/categories — list available scanner categories. */
 router.get('/categories', (_req: Request, res: Response) => {
