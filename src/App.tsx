@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Index from "./pages/Index";
 import FeedPage from "./pages/FeedPage";
+import MarketIntelligencePage from "./pages/MarketIntelligencePage";
 import NotFound from "./pages/NotFound";
 import HelpPage from "./pages/HelpPage";
 import TermsPage from "./pages/TermsPage";
@@ -23,6 +24,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/feed" element={<FeedPage />} />
+            <Route path="/market" element={<MarketIntelligencePage />} />
+            <Route path="/market/:id" element={<MarketIntelligencePage />} />
             <Route path="/help" element={<HelpPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/privacy" element={<PrivacyPage />} />

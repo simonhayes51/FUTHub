@@ -47,6 +47,9 @@ const Navbar = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
+              <Link to="/market" className="text-muted-foreground hover:text-foreground transition-colors">
+                Market
+              </Link>
               <a href="#traders" className="text-muted-foreground hover:text-foreground transition-colors">
                 Traders
               </a>

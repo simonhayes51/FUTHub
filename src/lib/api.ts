@@ -272,6 +272,29 @@ class ApiClient {
     }>(`/trending/movers?limit=${limit}`);
   }
 
+  // Market Intelligence (FC Edge)
+  async getMarketOverview() {
+    return this.request<import('./marketTypes').MarketOverviewResponse>('/market/overview');
+  }
+
+  async getMarketScanner(category = 'best-investments', limit = 20) {
+    return this.request<import('./marketTypes').ScannerResponse>(
+      `/market/scanner?category=${encodeURIComponent(category)}&limit=${limit}`
+    );
+  }
+
+  async getScannerCategories() {
+    return this.request<{ categories: import('./marketTypes').ScannerCategoryMeta[] }>(
+      '/market/categories'
+    );
+  }
+
+  async getMarketIntelligence(id: string) {
+    return this.request<import('./marketTypes').IntelligenceResponse>(
+      `/market/intelligence/${encodeURIComponent(id)}`
+    );
+  }
+
   // Stories
   async getStories() {
     return this.request<any[]>('/stories');
