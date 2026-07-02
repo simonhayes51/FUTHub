@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { playersDb } from '../lib/playersDb.js';
 import { isMockMode, mockCards } from '../lib/mockData.js';
 import { getScoredPool } from '../lib/cardPool.js';
+import { captureSnapshots, getHistory, stableKey } from '../lib/priceHistory.js';
 import {
   scoreCard,
   rankForCategory,
@@ -15,6 +16,48 @@ import {
 const router = Router();
 
 const VALID_CATEGORIES = new Set(SCANNER_CATEGORIES.map((c) => c.id));
+
+/**
+ * POST /api/market/snapshot
+ * Capture a price snapshot (for movement history + charts). Protected by the
+ * SNAPSHOT_TOKEN header so an external cron can trigger it; the in-process
+ * scheduler also calls the underlying function directly.
+ */
+router.post('/snapshot', async (req: Request, res: Response) => {
+  const token = process.env.SNAPSHOT_TOKEN;
+  if (token && req.get('x-snapshot-token') !== token) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const result = await captureSnapshots(req.query.force === 'true');
+    res.json({ ok: true, ...result });
+  } catch (error) {
+    console.error('Snapshot error:', error);
+    res.status(500).json({ error: 'Failed to capture snapshot' });
+  }
+});
+
+/** GET /api/market/history/:id — real price history for a card's charts. */
+router.get('/history/:id', async (req: Request, res: Response) => {
+  try {
+    const pool = await getScoredPool();
+    const card = pool.find((c) => c.id === req.params.id || String(c.cardId) === req.params.id);
+    if (!card) return res.status(404).json({ error: 'Card not found' });
+    const sinceHours = Math.min(24 * 90, Math.max(1, Number(req.query.hours) || 24 * 30));
+    const history = await getHistory(stableKey(card), sinceHours);
+    res.json({
+      id: card.id,
+      name: card.name,
+      current: card.price,
+      dataQuality: history.length > 0 ? 'live' : card.dataQuality,
+      points: history.length,
+      history,
+    });
+  } catch (error) {
+    console.error('Market history error:', error);
+    res.status(500).json({ error: 'Failed to fetch price history' });
+  }
+});
 
 /** GET /api/market/categories — list available scanner categories. */
 router.get('/categories', (_req: Request, res: Response) => {

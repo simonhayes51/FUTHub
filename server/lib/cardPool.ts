@@ -7,33 +7,38 @@
 import { playersDb } from './playersDb.js';
 import { isMockMode, mockCards } from './mockData.js';
 import { scoreCard, type MarketIntelligence, type RawCard } from './marketIntelligence.js';
+import { getMovementMap, applyMovement, stableKey } from './priceHistory.js';
 
 const CACHE_TTL = 5 * 60 * 1000;
 let poolCache: { data: MarketIntelligence[]; timestamp: number } | null = null;
+
+/** Load the raw candidate pool (current live prices), no scoring. */
+export async function getRawPool(): Promise<RawCard[]> {
+  if (isMockMode) return mockCards as RawCard[];
+  try {
+    return (await playersDb.card.findMany({
+      where: { rating: { gte: 75 } },
+      orderBy: [{ rating: 'desc' }],
+      take: 400,
+    })) as unknown as RawCard[];
+  } catch (error) {
+    console.error('Card pool query failed, using mock data:', error);
+    return mockCards as RawCard[];
+  }
+}
 
 export async function getScoredPool(): Promise<MarketIntelligence[]> {
   if (poolCache && Date.now() - poolCache.timestamp < CACHE_TTL) {
     return poolCache.data;
   }
 
-  let raw: RawCard[];
-  if (isMockMode) {
-    raw = mockCards as RawCard[];
-  } else {
-    try {
-      raw = (await playersDb.card.findMany({
-        where: { rating: { gte: 75 } },
-        orderBy: [{ rating: 'desc' }],
-        take: 400,
-      })) as unknown as RawCard[];
-    } catch (error) {
-      console.error('Card pool query failed, using mock data:', error);
-      raw = mockCards as RawCard[];
-    }
-  }
+  const raw = await getRawPool();
 
+  // Enrich with real 24h/7d movement from the snapshot history, so the engine
+  // scores on live deltas (dataQuality: 'live') rather than model estimates.
+  const movement = await getMovementMap(raw.map((c) => stableKey(c)));
   const scored = raw
-    .map((card) => scoreCard(card))
+    .map((card) => scoreCard(applyMovement(card, movement.get(stableKey(card)))))
     .filter((m): m is MarketIntelligence => m !== null);
 
   poolCache = { data: scored, timestamp: Date.now() };

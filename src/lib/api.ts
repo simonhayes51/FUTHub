@@ -295,6 +295,17 @@ class ApiClient {
     );
   }
 
+  async getMarketHistory(id: string, hours = 24 * 30) {
+    return this.request<{
+      id: string;
+      name: string;
+      current: number;
+      dataQuality: 'live' | 'estimated';
+      points: number;
+      history: Array<{ time: string; price: number }>;
+    }>(`/market/history/${encodeURIComponent(id)}?hours=${hours}`);
+  }
+
   // FC Edge — Dashboard, SBC, Packs, Evolutions, Objectives, Squads, Coach, News
   async getDashboard(name?: string) {
     const q = name ? `?name=${encodeURIComponent(name)}` : '';

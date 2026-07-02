@@ -1,7 +1,8 @@
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import { ArrowRight, ShieldCheck, Sparkles, TrendingUp, TrendingDown, Info } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Sparkles, TrendingUp, TrendingDown, Info, Radio } from 'lucide-react';
+import { Area, AreaChart, ResponsiveContainer, Tooltip, YAxis } from 'recharts';
 import type { MarketIntelligence } from '@/lib/marketTypes';
-import { useMarketIntelligence } from '@/hooks/useMarketIntelligence';
+import { useMarketIntelligence, useMarketHistory } from '@/hooks/useMarketIntelligence';
 import { AiRatingGauge } from './AiRatingGauge';
 import {
   formatCoins,
@@ -52,8 +53,11 @@ function Metric({ label, children }: { label: string; children: React.ReactNode 
 export function IntelligenceDetail({ item, open, onOpenChange, onSelectAlternative }: IntelligenceDetailProps) {
   // Fetch alternatives (and canonical reasons) lazily when a card is open.
   const { data } = useMarketIntelligence(open && item ? item.id : undefined);
+  const { data: history } = useMarketHistory(open && item ? item.id : undefined);
   const intel = data?.intelligence ?? item;
   const alternatives = data?.alternatives ?? [];
+  const chartData = (history?.history ?? []).map((p) => ({ t: p.time, price: p.price }));
+  const isLive = (history?.dataQuality ?? intel?.dataQuality) === 'live';
 
   if (!intel) return null;
 
@@ -90,14 +94,45 @@ export function IntelligenceDetail({ item, open, onOpenChange, onSelectAlternati
                 {intel.priceChange24h >= 0 ? <TrendingUp className="h-4 w-4" /> : <TrendingDown className="h-4 w-4" />}
                 {formatPercent(intel.priceChange24h)} 24h
               </span>
+              <span
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase',
+                  isLive ? 'border-success/40 bg-success/10 text-success' : 'border-yellow-400/30 bg-yellow-400/10 text-yellow-300'
+                )}
+              >
+                <Radio className="h-3 w-3" /> {isLive ? 'Live' : 'Est'}
+              </span>
             </div>
           </div>
         </div>
 
-        {intel.dataQuality === 'estimated' && (
+        {/* Live price history */}
+        {chartData.length > 1 && (
+          <div className="h-28 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+                <defs>
+                  <linearGradient id="fcPrice" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(185 90% 60%)" stopOpacity={0.45} />
+                    <stop offset="100%" stopColor="hsl(185 90% 60%)" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <YAxis hide domain={['dataMin', 'dataMax']} />
+                <Tooltip
+                  contentStyle={{ background: '#0a0a0f', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, fontSize: 12 }}
+                  labelFormatter={(t) => new Date(t as string).toLocaleString()}
+                  formatter={(v) => [formatCoins(Number(v)), 'Price']}
+                />
+                <Area type="monotone" dataKey="price" stroke="hsl(185 90% 60%)" strokeWidth={2} fill="url(#fcPrice)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {!isLive && (
           <div className="flex items-center gap-2 rounded-lg border border-yellow-400/20 bg-yellow-400/5 px-3 py-2 text-xs text-yellow-300/90">
             <Info className="h-3.5 w-3.5 shrink-0" />
-            Live order-book data unavailable — movement figures are a model estimate from card attributes.
+            Building live history — movement switches to live once 24h of price snapshots accrue for this card.
           </div>
         )}
 

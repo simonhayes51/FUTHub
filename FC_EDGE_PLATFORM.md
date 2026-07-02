@@ -34,6 +34,28 @@ src/components/{market,fc}/*                     reusable UI (gauge, cards, page
 src/pages/*Page.tsx                             the nine feature screens
 ```
 
+## Live market data
+
+Signals run on **real price movement**, sourced from the platform's own data — no
+third-party dependency (per spec).
+
+- **Current prices** come live from the `fut_players` table (the existing FUT
+  Traders Hub pipeline).
+- **History** is built by a snapshot service (`server/lib/priceHistory.ts`): an
+  hourly in-process scheduler (and a token-protected `POST /api/market/snapshot`
+  for external cron) records every card's price into a `PriceSnapshot` table
+  (main DB, auto-created by `prisma db push`, pruned to 30 days).
+- The card pool merges the latest snapshot at/older than 24h and 7d into each
+  card before scoring, so movement, momentum and volatility are **real**. Each
+  card reports `dataQuality: 'live' | 'estimated'`; the UI shows a LIVE/EST badge
+  and a real price-history chart (`GET /api/market/history/:id`).
+- Until 24h of snapshots accrue for a card, it scores from durable attributes and
+  is clearly flagged `estimated`; it flips to `live` automatically once history
+  exists. No back-fill of fake history.
+
+Config: `ENABLE_PRICE_SNAPSHOTS` (default on), `SNAPSHOT_TOKEN`,
+`PLAYERS_DATABASE_URL`.
+
 ## Design principles
 
 - **Deterministic** — same input → same output. Stable UI, cacheable, explainable.
@@ -46,10 +68,12 @@ src/pages/*Page.tsx                             the nine feature screens
 
 ## Out of scope in this environment
 
-Native iOS/Android binaries, Stripe billing, Firebase/APNs push, OAuth provider
-setup and live EA data ingestion require external accounts, credentials and app
-signing that aren't available here. The product/API surface for all of them is
-in place; wiring is a configuration/credentials step.
+Native iOS/Android binaries, Stripe billing, Firebase/APNs push and OAuth
+provider setup require external accounts, credentials and app signing that aren't
+available here. The product/API surface for all of them is in place; wiring is a
+configuration/credentials step. Price data is now **live** (see above); the SBC /
+pack / evolution / news *definitions* remain sample datasets until an EA content
+feed is ingested — but their pricing and solving already run on the live market.
 
 ## Verified
 

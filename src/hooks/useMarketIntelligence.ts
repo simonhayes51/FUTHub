@@ -38,3 +38,13 @@ export function useMarketIntelligence(id: string | undefined) {
     staleTime: 60_000,
   });
 }
+
+/** Live price history for a card's chart. */
+export function useMarketHistory(id: string | undefined) {
+  return useQuery({
+    queryKey: ['market', 'history', id],
+    queryFn: () => api.getMarketHistory(id as string),
+    enabled: Boolean(id),
+    staleTime: 5 * 60_000,
+  });
+}
