@@ -189,18 +189,10 @@ async function main() {
         nation: 'France',
         league: 'La Liga',
         club: 'Real Madrid',
-        cardType: 'Gold Rare',
-        platform: 'PS',
-        currentPrice: 285000,
-        price24hAgo: 248000,      // Up 14.9% in 24h
-        price7dAgo: 270000,       // Up 5.6% in 7d
-        price30dAgo: 310000,      // Down 8.1% in 30d
-        priceChange24h: 14.9,
-        priceChange7d: 5.6,
-        priceChange30d: -8.1,
-        volatility: 45,
-        volume: 1247,
-        lastPriceUpdate: new Date(),
+        version: 'Gold Rare',
+        priceNum: 285000,
+        price: '285,000',
+        priceUpdatedAt: new Date(),
       },
     }),
     prisma.card.create({
@@ -212,18 +204,10 @@ async function main() {
         nation: 'Norway',
         league: 'Premier League',
         club: 'Man City',
-        cardType: 'Gold Rare',
-        platform: 'PS',
-        currentPrice: 245000,
-        price24hAgo: 255000,      // Down 3.9% in 24h
-        price7dAgo: 230000,       // Up 6.5% in 7d
-        price30dAgo: 260000,      // Down 5.8% in 30d
-        priceChange24h: -3.9,
-        priceChange7d: 6.5,
-        priceChange30d: -5.8,
-        volatility: 38,
-        volume: 892,
-        lastPriceUpdate: new Date(),
+        version: 'Gold Rare',
+        priceNum: 245000,
+        price: '245,000',
+        priceUpdatedAt: new Date(),
       },
     }),
     prisma.card.create({
@@ -235,18 +219,10 @@ async function main() {
         nation: 'England',
         league: 'La Liga',
         club: 'Real Madrid',
-        cardType: 'TOTW',
-        platform: 'PS',
-        currentPrice: 125000,
-        price24hAgo: 105000,      // Up 19% in 24h (trending!)
-        price7dAgo: 98000,        // Up 27.6% in 7d
-        price30dAgo: 140000,      // Down 10.7% in 30d
-        priceChange24h: 19.0,
-        priceChange7d: 27.6,
-        priceChange30d: -10.7,
-        volatility: 62,
-        volume: 2134,
-        lastPriceUpdate: new Date(),
+        version: 'TOTW',
+        priceNum: 125000,
+        price: '125,000',
+        priceUpdatedAt: new Date(),
       },
     }),
     // Add more cards for better trending data
@@ -259,18 +235,10 @@ async function main() {
         nation: 'Brazil',
         league: 'La Liga',
         club: 'Real Madrid',
-        cardType: 'Gold Rare',
-        platform: 'PS',
-        currentPrice: 195000,
-        price24hAgo: 210000,      // Down 7.1% (falling)
-        price7dAgo: 205000,       // Down 4.9%
-        price30dAgo: 185000,      // Up 5.4%
-        priceChange24h: -7.1,
-        priceChange7d: -4.9,
-        priceChange30d: 5.4,
-        volatility: 51,
-        volume: 1567,
-        lastPriceUpdate: new Date(),
+        version: 'Gold Rare',
+        priceNum: 195000,
+        price: '195,000',
+        priceUpdatedAt: new Date(),
       },
     }),
     prisma.card.create({
@@ -282,18 +250,10 @@ async function main() {
         nation: 'Belgium',
         league: 'Premier League',
         club: 'Man City',
-        cardType: 'Gold Rare',
-        platform: 'PS',
-        currentPrice: 156000,
-        price24hAgo: 158000,      // Down 1.3% (stable)
-        price7dAgo: 154000,       // Up 1.3%
-        price30dAgo: 165000,      // Down 5.5%
-        priceChange24h: -1.3,
-        priceChange7d: 1.3,
-        priceChange30d: -5.5,
-        volatility: 28,
-        volume: 743,
-        lastPriceUpdate: new Date(),
+        version: 'Gold Rare',
+        priceNum: 156000,
+        price: '156,000',
+        priceUpdatedAt: new Date(),
       },
     }),
     prisma.card.create({
@@ -305,18 +265,10 @@ async function main() {
         nation: 'Spain',
         league: 'Premier League',
         club: 'Man City',
-        cardType: 'Gold Rare',
-        platform: 'PS',
-        currentPrice: 48000,
-        price24hAgo: 39000,       // Up 23.1% (trending!)
-        price7dAgo: 42000,        // Up 14.3%
-        price30dAgo: 52000,       // Down 7.7%
-        priceChange24h: 23.1,
-        priceChange7d: 14.3,
-        priceChange30d: -7.7,
-        volatility: 67,
-        volume: 3421,
-        lastPriceUpdate: new Date(),
+        version: 'Gold Rare',
+        priceNum: 48000,
+        price: '48,000',
+        priceUpdatedAt: new Date(),
       },
     }),
   ]);
