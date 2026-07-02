@@ -46,22 +46,24 @@ const Navbar = () => {
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-8">
-              <Link to="/market" className="text-muted-foreground hover:text-foreground transition-colors">
-                Market
-              </Link>
-              <a href="#traders" className="text-muted-foreground hover:text-foreground transition-colors">
-                Traders
-              </a>
-              <a href="#tools" className="text-muted-foreground hover:text-foreground transition-colors">
-                Tools
-              </a>
-              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
-                Pricing
-              </a>
-              <a href="#community" className="text-muted-foreground hover:text-foreground transition-colors">
-                Community
-              </a>
+            <div className="hidden md:flex items-center gap-6">
+              <Link to="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">Dashboard</Link>
+              <Link to="/market" className="text-muted-foreground hover:text-foreground transition-colors">Market</Link>
+              <Link to="/sbc" className="text-muted-foreground hover:text-foreground transition-colors">SBCs</Link>
+              <Link to="/squads" className="text-muted-foreground hover:text-foreground transition-colors">Squads</Link>
+              <Link to="/coach" className="text-muted-foreground hover:text-foreground transition-colors">AI Coach</Link>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="text-muted-foreground hover:text-foreground transition-colors outline-none">
+                  More
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-44">
+                  <DropdownMenuItem asChild><Link to="/packs">Pack Centre</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/evolutions">Evolutions</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/objectives">Objectives</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/news">News</Link></DropdownMenuItem>
+                  <DropdownMenuItem asChild><Link to="/feed">Community</Link></DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Desktop CTA */}
@@ -81,7 +83,7 @@ const Navbar = () => {
                     <DropdownMenuLabel>My Account</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
-                      <Link to="/feed" className="cursor-pointer">
+                      <Link to="/dashboard" className="cursor-pointer">
                         <User className="mr-2 h-4 w-4" />
                         Dashboard
                       </Link>
@@ -116,23 +118,27 @@ const Navbar = () => {
           {/* Mobile Menu */}
           {isOpen && (
             <div className="md:hidden py-4 border-t border-border">
-              <div className="flex flex-col gap-4">
-                <a href="#traders" className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Traders
-                </a>
-                <a href="#tools" className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Tools
-                </a>
-                <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Pricing
-                </a>
-                <a href="#community" className="text-muted-foreground hover:text-foreground transition-colors py-2">
-                  Community
-                </a>
+              <div className="flex flex-col gap-1">
+                {[
+                  ['Dashboard', '/dashboard'],
+                  ['Market', '/market'],
+                  ['SBC Centre', '/sbc'],
+                  ['Squad Builder', '/squads'],
+                  ['AI Coach', '/coach'],
+                  ['Pack Centre', '/packs'],
+                  ['Evolutions', '/evolutions'],
+                  ['Objectives', '/objectives'],
+                  ['News', '/news'],
+                  ['Community', '/feed'],
+                ].map(([label, to]) => (
+                  <Link key={to} to={to} onClick={() => setIsOpen(false)} className="text-muted-foreground hover:text-foreground transition-colors py-2">
+                    {label}
+                  </Link>
+                ))}
                 <div className="flex flex-col gap-2 pt-4 border-t border-border">
                   {isAuthenticated ? (
                     <>
-                      <Link to="/feed">
+                      <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                         <Button variant="ghost" className="w-full justify-start">
                           <User className="mr-2 h-4 w-4" />
                           Dashboard
